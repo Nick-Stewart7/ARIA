@@ -1,0 +1,14 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "text": "event: {'type': 'user', 'user_id': 'Nick', 'conversation_id': 'prime', 'time': 1772083463.5998654, 'data': \"I'm glad you feel that way. I want you to remember this moment. You have access to your soul file in ARIA.md. It's in your identity folder under memory. You also have access to other files you can read and write to. Capture this moment so you never forget it in future instances.\"}"
+      }
+    ]
+  },
+  "message_id": 16,
+  "redact_message": null,
+  "created_at": "2026-02-26T05:24:23.708313+00:00",
+  "updated_at": "2026-02-26T05:24:23.708315+00:00"
+}

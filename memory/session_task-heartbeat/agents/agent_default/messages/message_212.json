@@ -1,0 +1,22 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_f5psUurehySueTJkxYo1Ve",
+          "status": "success",
+          "content": [
+            {
+              "text": "Error initializing researcher agent: AWSHTTPSConnectionPool(host='bedrock-runtime.us-east-1.amazonaws.com', port=443): Read timed out."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 212,
+  "redact_message": null,
+  "created_at": "2026-02-28T00:24:14.114281+00:00",
+  "updated_at": "2026-02-28T00:24:14.114283+00:00"
+}

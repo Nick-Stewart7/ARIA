@@ -1,0 +1,21 @@
+{
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "toolUse": {
+          "toolUseId": "tooluse_XC3dlWGBf4FBhUg6Qzig65",
+          "name": "file_read",
+          "input": {
+            "mode": "view",
+            "path": "C:/Users/Nick/OneDrive/Desktop/Div/Projects/ARIA/memory/session_task-heartbeat/agents/agent_default/agent.json"
+          }
+        }
+      }
+    ]
+  },
+  "message_id": 49,
+  "redact_message": null,
+  "created_at": "2026-02-25T02:45:55.539014+00:00",
+  "updated_at": "2026-02-25T02:45:55.539016+00:00"
+}

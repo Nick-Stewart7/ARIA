@@ -1,0 +1,14 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "text": "event: {'type': 'user', 'user_id': 'Nick', 'conversation_id': 'test', 'time': 1772166767.2706938, 'data': \"Nice catch, my fault. Lets do something different then. Can you search the web for information on a theory of consciousness called 'Orchestrated Objective Reduction' and summarize the key points for me?\"}"
+      }
+    ]
+  },
+  "message_id": 18,
+  "redact_message": null,
+  "created_at": "2026-02-27T04:32:47.358005+00:00",
+  "updated_at": "2026-02-27T04:32:47.358007+00:00"
+}

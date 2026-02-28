@@ -1,0 +1,22 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_uHulzxLDqzkmI9zqJFna4U",
+          "status": "success",
+          "content": [
+            {
+              "text": "Content of C:/Users/Nick/OneDrive/Desktop/Div/Projects/ARIA/memory/identity/USERS.md:\nNick - Architect and partner\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 14,
+  "redact_message": null,
+  "created_at": "2026-02-25T02:40:45.406411+00:00",
+  "updated_at": "2026-02-25T02:40:45.406413+00:00"
+}

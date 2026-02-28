@@ -1,0 +1,22 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_S8IC3ZChJ39DiapYseUubw",
+          "status": "error",
+          "content": [
+            {
+              "text": "No files found matching pattern(s): plan.txt"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 120,
+  "redact_message": null,
+  "created_at": "2026-02-27T03:11:30.311259+00:00",
+  "updated_at": "2026-02-27T03:11:30.311261+00:00"
+}

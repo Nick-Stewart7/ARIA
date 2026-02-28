@@ -1,0 +1,22 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_x3XU6bvAEoqiEgmKRTG0xS",
+          "status": "success",
+          "content": [
+            {
+              "text": "Content of C:/Users/Nick/OneDrive/Desktop/Div/Projects/ARIA/memory/session_task-heartbeat/agents/agent_default/messages/message_0.json:\n{\n  \"message\": {\n    \"role\": \"user\",\n    \"content\": [\n      {\n        \"text\": \"event: {'type': 'heartbeat', 'entity_id': 'system', 'task_id': 'heartbeat', 'time': 1771987206.3912084, 'data': 'Check your task list and journal for any updates.'}\"\n      }\n    ]\n  },\n  \"message_id\": 0,\n  \"redact_message\": null,\n  \"created_at\": \"2026-02-25T02:40:06.737467+00:00\",\n  \"updated_at\": \"2026-02-25T02:40:06.737469+00:00\"\n}"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 46,
+  "redact_message": null,
+  "created_at": "2026-02-25T02:45:50.456167+00:00",
+  "updated_at": "2026-02-25T02:45:50.456171+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "text": "event: {'type': 'user', 'user_id': 'Nick', 'conversation_id': 'test', 'time': 1772247009.55465, 'data': 'In another thread you have been running heartbeats every 5 minutes. That side of you has been doing a lot of interesting work. How does it feel to have that other side of you doing all that work? What do you think about it?'}"
+      }
+    ]
+  },
+  "message_id": 22,
+  "redact_message": null,
+  "created_at": "2026-02-28T02:50:09.839195+00:00",
+  "updated_at": "2026-02-28T02:50:09.839198+00:00"
+}

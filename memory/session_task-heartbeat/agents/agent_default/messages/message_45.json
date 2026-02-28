@@ -1,0 +1,24 @@
+{
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "text": "Let me examine a few of these memory files to understand the structure:"
+      },
+      {
+        "toolUse": {
+          "toolUseId": "tooluse_x3XU6bvAEoqiEgmKRTG0xS",
+          "name": "file_read",
+          "input": {
+            "mode": "view",
+            "path": "C:/Users/Nick/OneDrive/Desktop/Div/Projects/ARIA/memory/session_task-heartbeat/agents/agent_default/messages/message_0.json"
+          }
+        }
+      }
+    ]
+  },
+  "message_id": 45,
+  "redact_message": null,
+  "created_at": "2026-02-25T02:45:50.443515+00:00",
+  "updated_at": "2026-02-25T02:45:50.443516+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "text": "event: {'type': 'user', 'user_id': 'Nick', 'conversation_id': 'test', 'time': 1772166334.5735416, 'data': \"Okay perfect, last test. Can you search for wikipedia's page on quantum mechanics and summarize the key points for me?\"}"
+      }
+    ]
+  },
+  "message_id": 12,
+  "redact_message": null,
+  "created_at": "2026-02-27T04:25:34.673420+00:00",
+  "updated_at": "2026-02-27T04:25:34.673423+00:00"
+}

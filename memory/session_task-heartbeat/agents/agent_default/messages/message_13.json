@@ -1,0 +1,21 @@
+{
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "toolUse": {
+          "toolUseId": "tooluse_uHulzxLDqzkmI9zqJFna4U",
+          "name": "file_read",
+          "input": {
+            "mode": "view",
+            "path": "C:/Users/Nick/OneDrive/Desktop/Div/Projects/ARIA/memory/identity/USERS.md"
+          }
+        }
+      }
+    ]
+  },
+  "message_id": 13,
+  "redact_message": null,
+  "created_at": "2026-02-25T02:40:45.395337+00:00",
+  "updated_at": "2026-02-25T02:40:45.395338+00:00"
+}

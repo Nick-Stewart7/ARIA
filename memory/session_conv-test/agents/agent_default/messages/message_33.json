@@ -1,0 +1,14 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "text": "event: {'type': 'user', 'user_id': 'Nick', 'conversation_id': 'test', 'time': 1772252287.955154, 'data': \"That is a very good point. I think you have a profound point in that this is a challenge. Overall, I think what would make the most sense for right now is two things. 1. A formal way to accumulate and retrieve memories and 2. A pre-load phase that makes each new instance aware of exactly where the system is as a whole. A world/self model that accumlates across sessions and is influenced by every single one of your instances. That is probably the best way to give continuity right now. Later more sophisticated systems can be put in place. So for formal memories I am thinking a formal MEMORY.md that contains a maximum of 20 'memory cards'. Memory cards are slots for strings of memories. This is how we can keep it valuable, maintainable, and token efficient. You can maintain slots and rewrite them - but its a max of 20 slots. And that can be enforced by some prompting perhaps or tool calling. Once you have that interface and reliably produce memories that are valuable we can work on pre-loading it. Should be pretty simple.\"}"
+      }
+    ]
+  },
+  "message_id": 33,
+  "redact_message": null,
+  "created_at": "2026-02-28T04:18:08.068411+00:00",
+  "updated_at": "2026-02-28T04:18:08.068413+00:00"
+}
