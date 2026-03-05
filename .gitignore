@@ -74,3 +74,10 @@ htmlcov/
 CLAUDE.md
 .claude/*
 .claude
+
+# Runtime state — session history, journals, and ephemeral plans
+memory/session_*/
+memory/sessions/
+memory/MEMORY.md
+journal/
+plan.txt

@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from strands import Agent
 from strands.agent.conversation_manager import SummarizingConversationManager
@@ -10,17 +10,30 @@ from subagents.programmer import programmer
 from subagents.researcher import researcher_agent
 from subagents.observer import observer
 from subagents.reflector import reflector
-from prompts.prompts import ORCHESTRATOR_PROMPT, FILE_LOCATIONS, SUB_AGENTS, IDENTITY
+from prompts.ARIA_prompts import ORCHESTRATOR_PROMPT
+from memory_loader import load_identity, load_user_context, FILE_SYSTEM_ARCHITECTURE
 
-def create_aria_instance(session_id: str, memory_context: str, soul: str):
-    """Factory function to create an instance of Aria"""
+_ROOT = Path(__file__).parent
+
+
+def create_aria_instance(session_id: str, user_id: str = "user"):
+    """Factory function to create an instance of Aria."""
+
+    prompt = ORCHESTRATOR_PROMPT.format(
+        identity=load_identity(),
+        user_context=load_user_context(user_id),
+        file_system_architecture=FILE_SYSTEM_ARCHITECTURE,
+    )
 
     aria = Agent(
         name="ARIA",
-        system_prompt=ORCHESTRATOR_PROMPT.format(memory_context=memory_context, file_locations=FILE_LOCATIONS, identity=IDENTITY, soul=soul, sub_agents=SUB_AGENTS),
+        system_prompt=prompt,
         tools=[file_read, file_write, programmer, researcher_agent, observer, reflector, planner],
         conversation_manager=SummarizingConversationManager(),
-        session_manager=FileSessionManager(session_id=session_id, storage_dir=os.path.expanduser("C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory")),
+        session_manager=FileSessionManager(
+            session_id=session_id,
+            storage_dir=_ROOT / "memory" / "sessions",
+        ),
         callback_handler=None
     )
     return aria

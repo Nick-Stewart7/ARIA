@@ -24,24 +24,13 @@ class ARIAServer:
         else:
             return f"conv-{event.get('conversation_id', 'default')}"
 
-    def load_soul(self):
-        path = Path("C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\identity\\ARIA.md")
-        return path.read_text() if path.exists() else ""
-    
-    def load_memory(self, event_type):
-        #todo add conditions for different types of events to load different memory contexts
-        print(f"\033[93mLoading memory for event type: {event_type}\033[0m")
-        path = Path("C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\MEMORY.md")
-        return path.read_text() if path.exists() else ""
-
     async def run_aria(self, event, websocket):
         """Process a single event through ARIA and stream results back."""
         session_id = self.get_session_id(event)
-        logger.info(f"Processing event with session: {session_id}")
+        user_id = event.get("user_id", "user")
+        logger.info(f"Processing event with session: {session_id}, user: {user_id}")
 
-        memory = self.load_memory(event.get('type'))
-        soul = self.load_soul()
-        aria = create_aria_instance(session_id, memory, soul)
+        aria = create_aria_instance(session_id, user_id=user_id)
 
         result = None
         active_tool = None

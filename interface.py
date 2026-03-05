@@ -3,6 +3,7 @@ import asyncio
 import websockets
 import json
 import time
+from config import USER_ID, DEFAULT_CONVERSATION_ID
 
 
 async def chat():
@@ -15,8 +16,8 @@ async def chat():
 
             await ws.send(json.dumps({
                 "type": "user",
-                "user_id": "Nick",
-                "conversation_id": "test",
+                "user_id": USER_ID,
+                "conversation_id": DEFAULT_CONVERSATION_ID,
                 "time": time.time(),
                 "data": user_input
             }))
