@@ -79,5 +79,16 @@ CLAUDE.md
 memory/session_*/
 memory/sessions/
 memory/MEMORY.md
+memory/users/
 journal/
 plan.txt
+
+# ARIA-generated artifacts (ships empty for fresh instances)
+artifacts/*
+!artifacts/.gitkeep
+
+# Vector memory database (runtime data, not source code)
+chroma_db/
+
+# Session summary cache
+subagents/memory/summaries/

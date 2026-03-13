@@ -8,5 +8,5 @@ class MemoryManager:
     def store(self, session_id: str, content: str):
         self.collection.upsert(ids=[session_id], documents=[content])
 
-    def recall(self, query: str, n_results: int = 5):
-        return self.collection.query(query_texts=[query], n_results=n_results)
+    def recall(self, query: str, n_results: int = 20):
+        return str(self.collection.query(query_texts=[query], n_results=n_results))

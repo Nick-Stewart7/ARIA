@@ -6,6 +6,7 @@ from strands_tools import file_read, file_write, current_time
 from tools.web_search import web_search
 from prompts.ARIA_prompts import SUMMARY_PROMPT
 from memory_loader import _ROOT, load_identity, FILE_SYSTEM_ARCHITECTURE
+from output_models.models import Memory_Output
 
 _ROOT = Path(__file__).parent
 
@@ -17,7 +18,7 @@ def summary_agent(session_id: str) -> str:
         session_id: The ID of the session to review for memory extraction
 
     Returns:
-        A detailed response with research findings, relevant information, and actionable insights
+        A detailed yet concise summary
     """
     try:
         agent = Agent(
@@ -30,10 +31,13 @@ def summary_agent(session_id: str) -> str:
                 session_id=session_id,
                 storage_dir=_ROOT / "memory" / "summaries",
             ),
-            tools=[web_search, file_read, file_write, current_time],
+            tools=[current_time],
             conversation_manager=SummarizingConversationManager(),
+            structured_output_model=Memory_Output
         )
-        response = agent(f"Review session {session_id} and extract important long-term memories.")
-        return str(response)
+        response = agent("Review the current session and extract important long-term memories.")
+
+        memory_list = response.structured_output.memories
+        return memory_list
     except Exception as e:
         return f"Error initializing summary agent: {str(e)}"

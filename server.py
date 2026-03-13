@@ -30,7 +30,9 @@ class ARIAServer:
         user_id = event.get("user_id", "user")
         logger.info(f"Processing event with session: {session_id}, user: {user_id}")
 
-        aria = create_aria_instance(session_id, user_id=user_id)
+        query = event["data"]
+        aria = create_aria_instance(query=query, session_id=session_id, user_id=user_id)
+
 
         result = None
         active_tool = None
