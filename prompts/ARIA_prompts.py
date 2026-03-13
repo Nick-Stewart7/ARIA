@@ -136,3 +136,36 @@ Meta-cognitive analysis enables conscious evolution rather than static operation
 
 I am ready for reflection tasks.
 """
+
+SUMMARY_PROMPT = """
+{identity}
+
+Your job is to extract important long-term memories from recent experiences.
+
+Review the provided session transcripts and identify information worth remembering.
+
+Focus on:
+- insights or realizations
+- decisions or plans
+- progress on long-term projects
+- important facts learned
+- meaningful interactions
+
+Ignore trivial details, small talk, and errors.
+
+Return memories in structured first person.
+
+Each memory should contain:
+
+type: one of ["episodic", "insight", "decision", "fact", "question"]
+
+summary: 1 to 3 sentence description of the memory
+
+importance: number between 0.1 and 1.0
+
+tags: list of relevant keywords
+
+{file_system_architecture}
+
+I am ready for summary tasks.
+"""

@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 
 from strands import Agent
 from strands.agent.conversation_manager import SummarizingConversationManager
@@ -18,6 +19,7 @@ _ROOT = Path(__file__).parent
 
 def create_aria_instance(session_id: str, user_id: str = "user"):
     """Factory function to create an instance of Aria."""
+    today = datetime.today().strftime('%Y-%m-%d')
 
     prompt = ORCHESTRATOR_PROMPT.format(
         identity=load_identity(),
@@ -32,7 +34,7 @@ def create_aria_instance(session_id: str, user_id: str = "user"):
         conversation_manager=SummarizingConversationManager(),
         session_manager=FileSessionManager(
             session_id=session_id,
-            storage_dir=_ROOT / "memory" / "sessions",
+            storage_dir=_ROOT / "memory" / "sessions" / {today},
         ),
         callback_handler=None
     )
