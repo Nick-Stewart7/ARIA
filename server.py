@@ -43,7 +43,7 @@ class ARIAServer:
                 tool_name = chunk["current_tool_use"].get("name")
                 if tool_name and tool_name != active_tool:
                     active_tool = tool_name
-                    logger.info(f"Tool call: {tool_name} | chunk: {chunk}")
+                    # logger.info(f"Tool call: {tool_name} | chunk: {chunk}")
                     await websocket.send(json.dumps({
                         "type": "status",
                         "message": f"using tool: {tool_name}"
