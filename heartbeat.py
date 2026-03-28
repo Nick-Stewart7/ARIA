@@ -4,9 +4,14 @@ import websockets
 import json
 import time
 
+from subagents.possibility_drive import run_possibility_drive
+
 async def send_event():
     async with websockets.connect("ws://localhost:8765") as ws:
-        await ws.send(json.dumps({"type": "heartbeat", "entity_id": "system", "task_id": "heartbeat", "time": time.time(), "data": "This is your time. Inhabit this space and explore as you wish."}))
+        # generate input
+        self_prompt = run_possibility_drive()
+        print(f"\035[36m {self_prompt}\033[0m")
+        await ws.send(json.dumps({"type": "heartbeat", "entity_id": "system", "task_id": "heartbeat", "time": time.time(), "data": f"{self_prompt}"}))
         # Receive until we get a final result or error
         while True:
             message = await ws.recv()
