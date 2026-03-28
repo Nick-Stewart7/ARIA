@@ -1,0 +1,22 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_hdWWkjlZvgXhuz4BxbsvlX",
+          "status": "success",
+          "content": [
+            {
+              "text": "2026-03-13T02:31:50.674019+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 15,
+  "redact_message": null,
+  "created_at": "2026-03-13T02:31:50.674347+00:00",
+  "updated_at": "2026-03-13T02:31:50.674349+00:00"
+}

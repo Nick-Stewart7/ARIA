@@ -1,0 +1,44 @@
+from pathlib import Path
+from datetime import datetime
+
+from strands import Agent
+from strands.agent.conversation_manager import SummarizingConversationManager
+from strands.session.file_session_manager import FileSessionManager
+from strands_tools import file_read, file_write
+
+from aria.subagents.planner import planner
+from aria.subagents.programmer import programmer
+from aria.subagents.researcher import researcher_agent
+from aria.subagents.observer import observer
+from aria.subagents.reflector import reflector
+from aria.prompts.ARIA_prompts import ORCHESTRATOR_PROMPT
+from aria.memory_loader import load_identity, load_user_context, load_related_memories, FILE_SYSTEM_ARCHITECTURE
+
+_ROOT = Path(__file__).parent.parent.resolve()
+
+
+def create_aria_instance(query, session_id: str, user_id: str = "user"):
+    """Factory function to create an instance of Aria."""
+    today = datetime.today().strftime('%Y-%m-%d')
+
+    prompt = ORCHESTRATOR_PROMPT.format(
+        identity=load_identity(),
+        user_context=load_user_context(user_id),
+        file_system_architecture=FILE_SYSTEM_ARCHITECTURE,
+        memories=load_related_memories(query)
+    )
+
+    print(f"\033[36m {prompt}\033[0m")
+
+    aria = Agent(
+        name="ARIA",
+        system_prompt=prompt,
+        tools=[file_read, file_write, programmer, researcher_agent, observer, reflector, planner],
+        conversation_manager=SummarizingConversationManager(),
+        session_manager=FileSessionManager(
+            session_id=session_id,
+            storage_dir=_ROOT / "memory" / "sessions" / str(today),
+        ),
+        callback_handler=None
+    )
+    return aria

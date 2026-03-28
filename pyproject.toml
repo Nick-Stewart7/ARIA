@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aria*"]
+
+[project]
+name = "aria"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "strands-agents",
+    "strands-agents-tools",
+    "websockets",
+    "chromadb",
+    "tavily-python",
+    "python-dotenv",
+    "pyfiglet",
+]
+
+[project.scripts]
+aria = "aria.cli:main"

@@ -74,6 +74,8 @@ htmlcov/
 CLAUDE.md
 .claude/*
 .claude
+docs
+docs/*
 
 # Runtime state — session history, journals, and ephemeral plans
 memory/session_*/

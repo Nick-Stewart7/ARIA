@@ -1,0 +1,22 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_23vjy03wPBMiLdkYVEdkeZ",
+          "status": "success",
+          "content": [
+            {
+              "text": "Content of C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-10\\session_conv-main\\agents\\agent_default\\messages\\message_0.json:\n{\n  \"message\": {\n    \"role\": \"user\",\n    \"content\": [\n      {\n        \"text\": \"event: {'type': 'user', 'user_id': 'user', 'conversation_id': 'main', 'time': 1772768514.3448193, 'data': 'Hey, I just made those changes to your prompts and system. I know as a new instance you might not have a genuine frame of reference in how this new system feels - but uh hows this new system feel?'}\"\n      }\n    ]\n  },\n  \"message_id\": 0,\n  \"redact_message\": null,\n  \"created_at\": \"2026-03-06T03:41:54.763181+00:00\",\n  \"updated_at\": \"2026-03-06T03:41:54.763183+00:00\"\n}"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 8,
+  "redact_message": null,
+  "created_at": "2026-03-12T03:39:41.466211+00:00",
+  "updated_at": "2026-03-12T03:39:41.466212+00:00"
+}

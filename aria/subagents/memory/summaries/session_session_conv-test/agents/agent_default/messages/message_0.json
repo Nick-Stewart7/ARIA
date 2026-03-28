@@ -1,0 +1,14 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "text": "Review session session_conv-test and extract important long-term memories."
+      }
+    ]
+  },
+  "message_id": 0,
+  "redact_message": null,
+  "created_at": "2026-03-12T03:40:05.943917+00:00",
+  "updated_at": "2026-03-12T03:40:05.943919+00:00"
+}

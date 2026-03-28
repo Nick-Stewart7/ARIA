@@ -1,0 +1,24 @@
+{
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "text": "Let me look specifically at the session_conv-test messages:"
+      },
+      {
+        "toolUse": {
+          "toolUseId": "tooluse_BOuqsBSPrXmJxv1PrX0KMs",
+          "name": "file_read",
+          "input": {
+            "mode": "view",
+            "path": "C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-10\\session_conv-test\\agents\\agent_default\\messages\\message_0.json,C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-10\\session_conv-test\\agents\\agent_default\\messages\\message_1.json,C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-10\\session_conv-test\\agents\\agent_default\\messages\\message_2.json,C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-10\\session_conv-test\\agents\\agent_default\\messages\\message_3.json,C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-10\\session_conv-test\\agents\\agent_default\\messages\\message_4.json"
+          }
+        }
+      }
+    ]
+  },
+  "message_id": 5,
+  "redact_message": null,
+  "created_at": "2026-03-12T03:40:28.609379+00:00",
+  "updated_at": "2026-03-12T03:40:28.609381+00:00"
+}

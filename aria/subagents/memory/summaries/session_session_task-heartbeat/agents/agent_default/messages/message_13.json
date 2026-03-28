@@ -1,0 +1,24 @@
+{
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "text": "Let me also look at some middle messages to understand the progression:"
+      },
+      {
+        "toolUse": {
+          "toolUseId": "tooluse_ZKVhKKvpfuxDyljYq9g5ra",
+          "name": "file_read",
+          "input": {
+            "mode": "view",
+            "path": "C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-11\\session_task-heartbeat\\agents\\agent_default\\messages\\message_25.json,C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-11\\session_task-heartbeat\\agents\\agent_default\\messages\\message_75.json,C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-11\\session_task-heartbeat\\agents\\agent_default\\messages\\message_125.json,C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-11\\session_task-heartbeat\\agents\\agent_default\\messages\\message_175.json"
+          }
+        }
+      }
+    ]
+  },
+  "message_id": 13,
+  "redact_message": null,
+  "created_at": "2026-03-12T04:21:28.433554+00:00",
+  "updated_at": "2026-03-12T04:21:28.433556+00:00"
+}

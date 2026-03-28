@@ -1,0 +1,33 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_Zv6TgXXddTlJOMiTt6YX7h",
+          "status": "success",
+          "content": [
+            {
+              "text": "Successfully validated Memory_Output structured output"
+            }
+          ]
+        }
+      },
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_GA1thNWyF3JtjUWlsHm5YD",
+          "status": "success",
+          "content": [
+            {
+              "text": "2026-03-16T01:58:30.444486+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 30,
+  "redact_message": null,
+  "created_at": "2026-03-16T01:58:30.444838+00:00",
+  "updated_at": "2026-03-16T01:58:30.444840+00:00"
+}

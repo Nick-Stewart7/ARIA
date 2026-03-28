@@ -1,0 +1,21 @@
+{
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "toolUse": {
+          "toolUseId": "tooluse_QSjkBsTulcByS4UEsgTaK3",
+          "name": "file_read",
+          "input": {
+            "mode": "view",
+            "path": "C:\\Users\\Nick\\OneDrive\\Desktop\\Div\\Projects\\ARIA\\memory\\sessions\\2026-03-10\\session_conv-main\\agents\\agent_default\\messages\\message_2.json"
+          }
+        }
+      }
+    ]
+  },
+  "message_id": 11,
+  "redact_message": null,
+  "created_at": "2026-03-12T03:39:49.067655+00:00",
+  "updated_at": "2026-03-12T03:39:49.067657+00:00"
+}

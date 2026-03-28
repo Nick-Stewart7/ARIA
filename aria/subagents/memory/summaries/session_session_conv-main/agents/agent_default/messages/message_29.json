@@ -1,0 +1,18 @@
+{
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "toolUse": {
+          "toolUseId": "tooluse_eXJPLvND8xfH9ogQu4IpuN",
+          "name": "current_time",
+          "input": {}
+        }
+      }
+    ]
+  },
+  "message_id": 29,
+  "redact_message": null,
+  "created_at": "2026-03-13T02:20:31.588694+00:00",
+  "updated_at": "2026-03-13T02:20:31.588699+00:00"
+}

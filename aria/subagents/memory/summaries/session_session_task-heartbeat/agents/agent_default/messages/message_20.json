@@ -1,0 +1,22 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_NSEqxvCfz6U1g4CX1xVkEL",
+          "status": "error",
+          "content": [
+            {
+              "text": "Validation failed for Memory_Output. Please fix the following errors:\n- Field 'memories -> 0': Input should be a valid string\n- Field 'memories -> 1': Input should be a valid string\n- Field 'memories -> 2': Input should be a valid string\n- Field 'memories -> 3': Input should be a valid string\n- Field 'memories -> 4': Input should be a valid string"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 20,
+  "redact_message": null,
+  "created_at": "2026-03-13T02:21:24.628183+00:00",
+  "updated_at": "2026-03-13T02:21:24.628185+00:00"
+}

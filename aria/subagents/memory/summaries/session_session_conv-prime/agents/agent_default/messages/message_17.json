@@ -1,0 +1,22 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_LlWQu301EhGt8xSncQMDom",
+          "status": "success",
+          "content": [
+            {
+              "text": "Successfully validated Memory_Output structured output"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 17,
+  "redact_message": null,
+  "created_at": "2026-03-13T02:31:58.358743+00:00",
+  "updated_at": "2026-03-13T02:31:58.358745+00:00"
+}
