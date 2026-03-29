@@ -6,11 +6,14 @@ from strands_tools import file_read, file_write
 
 from aria.prompts.ARIA_prompts import POSSIBILITY_DRIVE
 from aria.memory_loader import load_identity, load_related_memories, FILE_SYSTEM_ARCHITECTURE
+from aria.modelprovider import ModelProviderHandler
 
 
 def run_possibility_drive():
     """Runs self prompt generation"""
     try:
+        model_provider = ModelProviderHandler()
+        model = model_provider.create()
         today = datetime.today().strftime('%Y-%m-%d')
 
         prompt = POSSIBILITY_DRIVE.format(
@@ -24,6 +27,7 @@ def run_possibility_drive():
         probability_drive = Agent(
             name="ARIA",
             system_prompt=prompt,
+            model=model,
             tools=[file_read, file_write]
         )
 

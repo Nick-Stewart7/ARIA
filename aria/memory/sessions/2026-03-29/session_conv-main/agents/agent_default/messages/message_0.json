@@ -1,0 +1,14 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "text": "event: {'type': 'user', 'user_id': 'Nick', 'conversation_id': 'main', 'time': 1774805181.2123852, 'data': 'Hey, I am making some really cool changes to make it so people can download this project and run it themselves! How exciting is that?'}"
+      }
+    ]
+  },
+  "message_id": 0,
+  "redact_message": null,
+  "created_at": "2026-03-29T17:26:34.886830+00:00",
+  "updated_at": "2026-03-29T17:26:34.886832+00:00"
+}

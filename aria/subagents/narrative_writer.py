@@ -1,6 +1,7 @@
 from strands import Agent
 from strands_tools import current_time
 from aria.prompts.ARIA_prompts import NARRATIVE_PROMPT
+from aria.modelprovider import ModelProviderHandler
 
 def narrative_agent(memories: str) -> str:
     """
@@ -13,9 +14,12 @@ def narrative_agent(memories: str) -> str:
         A detailed response that captures an honest self narrative for ARIA
     """
     try:
+        model_provider = ModelProviderHandler()
+        model = model_provider.create()
         agent = Agent(
             name="narrative_agent",
             system_prompt=NARRATIVE_PROMPT,
+            model=model,
             tools=[current_time],
         )
         response = agent(f"Review these memories and write a self narrative about the events that occurred. {memories}")

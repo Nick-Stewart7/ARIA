@@ -1,7 +1,9 @@
 import chromadb
+import os
 
 class MemoryManager:
-    def __init__(self, path="./chroma_db"):
+    def __init__(self):
+        path = os.getenv("CHROMA_DB_DIR", "chroma_db")
         self.client = chromadb.PersistentClient(path=path)
         self.collection = self.client.get_or_create_collection("sessions")
 

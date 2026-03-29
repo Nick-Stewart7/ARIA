@@ -4,11 +4,13 @@ import websockets
 import json
 import time
 import os
-USER_ID = os.getenv("USER_ID", "user")
-DEFAULT_CONVERSATION_ID = os.getenv("DEFAULT_CONVERSATION_ID", "main")
 
 async def chat():
-    async with websockets.connect("ws://localhost:8765", ping_timeout=None) as ws:
+    USER_ID = os.getenv("USER_ID", "user")
+    DEFAULT_CONVERSATION_ID = os.getenv("DEFAULT_CONVERSATION_ID", "main")
+    HOST = os.getenv("HOST", "localhost")
+    PORT = os.getenv("PORT", "65535")
+    async with websockets.connect(f"ws://{HOST}:{PORT}", ping_timeout=None) as ws:
         print("Connected to ARIA. Type 'exit' to quit.\n")
         while True:
             user_input = input('\u233e ')

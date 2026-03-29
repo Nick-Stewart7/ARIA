@@ -3,7 +3,7 @@ import websockets
 import json
 from dotenv import load_dotenv
 import logging
-from pathlib import Path
+import os
 from aria.agent import create_aria_instance
 
 logging.basicConfig(level=logging.INFO)
@@ -96,9 +96,12 @@ class ARIAServer:
         finally:
             self.active_connections.discard(websocket)
 
-    async def start(self, host="localhost", port=8765):
+    async def start(self):
         # Start the background queue processor alongside the server
         asyncio.create_task(self.process_queue())
+
+        host = os.getenv("HOST", "localhost")
+        port = int(os.getenv("PORT", "65535"))
 
         async with websockets.serve(
             self.handle_client,

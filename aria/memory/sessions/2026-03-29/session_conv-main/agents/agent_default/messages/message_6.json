@@ -1,0 +1,33 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_pzqDCnKmhkAfV4gX1CBmGE",
+          "status": "success",
+          "content": [
+            {
+              "text": "Error processing file README.md: 'charmap' codec can't decode byte 0x90 in position 2241: character maps to <undefined>"
+            }
+          ]
+        }
+      },
+      {
+        "toolResult": {
+          "toolUseId": "tooluse_ijRL8dvFGvMzgfheQpszvA",
+          "status": "success",
+          "content": [
+            {
+              "text": "File: pyproject.toml\nSize: 0.50 KB\nTotal Lines: 26\n\nPreview:\n[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[tool.setuptools.packages.find]\nwhere = [\".\"]\ninclude = [\"aria*\"]\n\n[project]\nname = \"aria\"\nversion = \"0.1.0\"\nrequires-python = \">=3.11\"\ndependencies = [\n    \"strands-agents\",\n    \"strands-agents-tools\",\n    \"strands-agents[anthropic]\",\n    \"strands-agents[ollama]\",\n    \"websockets\",\n    \"chromadb\",\n    \"tavily-python\",\n    \"python-dotenv\",\n    \"pyfiglet\",\n]\n\n[project.scripts]\naria = \"aria.cli:main\""
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "message_id": 6,
+  "redact_message": null,
+  "created_at": "2026-03-29T17:28:11.221818+00:00",
+  "updated_at": "2026-03-29T17:28:11.221820+00:00"
+}

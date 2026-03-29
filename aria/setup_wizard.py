@@ -10,8 +10,6 @@ validate env vars
 inits directories
 check deps
 '''
-
-import os
 import sys
 from dotenv import set_key
 from pathlib import Path
@@ -30,6 +28,7 @@ def generate_env_file(provider:str, api_key:str, host:str, port:str, tavily_key:
     set_key(dotenv_path, "PORT", port)
     set_key(dotenv_path, "TAVILY_API_KEY", tavily_key)
     set_key(dotenv_path, "USER_ID", user)
+    set_key(dotenv_path, "DEFAULT_CONVERSATION_ID", "main")
 
 def ask_user(question: str, default=None, choices=None, required=True):
     while True:
@@ -45,6 +44,26 @@ def ask_user(question: str, default=None, choices=None, required=True):
             print(f"  Must be one of: {', '.join(choices)}")
             continue
         return value
+    
+def map_directories():
+    project_root  = Path(__file__).parent.resolve()
+    memory_dir = Path(project_root / "memory").resolve()
+    session_dir = Path(memory_dir / "sessions").resolve()
+    chroma_db_dir = Path(project_root / "chroma_db").resolve()
+    artifacts_dir = Path(project_root / "artifacts").resolve()
+    journal_dir = Path(project_root / "journal").resolve()
+    identity_file = Path(memory_dir / "identity" / "ARIA.md").resolve()
+    user_context = Path(memory_dir / "users").resolve()
+    dotenv_path = Path('.env')
+    dotenv_path.touch(exist_ok=True)
+
+    set_key(dotenv_path, "MEMORY_DIR", str(memory_dir))
+    set_key(dotenv_path, "SESSION_DIR", str(session_dir))
+    set_key(dotenv_path, "CHROMA_DB_DIR", str(chroma_db_dir))
+    set_key(dotenv_path, "ARTIFACTS_DIR", str(artifacts_dir))
+    set_key(dotenv_path, "JOURNAL_DIR", str(journal_dir))
+    set_key(dotenv_path, "IDENTITY_FILE", str(identity_file))
+    set_key(dotenv_path, "USER_CONTEXT_DIR", str(user_context))
 
 def run_setup():
     art = pyfiglet.figlet_format("ARIA", font="bulbhead")
@@ -64,6 +83,10 @@ def run_setup():
         generate_env_file(provider=provider, api_key=api_key, host=host, port=port, tavily_key=tavily_key, user=user)
 
         print("\033[32m.env file created successfully!")
+
+        print("Mapping directories...")
+        map_directories()
+        print("\033[32mDirectories mapped successfully!")
         print("\n\033[32mSetup complete. Run 'aria serve' to start.")
     except (KeyboardInterrupt, EOFError):
         print("\n\033[31mSetup cancelled.")
