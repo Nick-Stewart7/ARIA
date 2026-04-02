@@ -46,7 +46,7 @@ def ask_user(question: str, default=None, choices=None, required=True):
         return value
     
 def map_directories():
-    project_root  = Path(__file__).parent.resolve()
+    project_root  = Path(__file__).parent.parent.resolve()
     memory_dir = Path(project_root / "memory").resolve()
     session_dir = Path(memory_dir / "sessions").resolve()
     chroma_db_dir = Path(project_root / "chroma_db").resolve()
