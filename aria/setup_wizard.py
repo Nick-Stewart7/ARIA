@@ -15,7 +15,7 @@ from dotenv import set_key
 from pathlib import Path
 import pyfiglet
 
-def generate_env_file(provider:str, api_key:str, host:str, port:str, tavily_key:str, user:str):
+def generate_env_file(provider:str, api_key:str, host:str, port:str, tavily_key:str, user:str, cycles:str, period:str):
     dotenv_path = Path('.env')
     dotenv_path.touch(exist_ok=True)
 
@@ -29,6 +29,8 @@ def generate_env_file(provider:str, api_key:str, host:str, port:str, tavily_key:
     set_key(dotenv_path, "TAVILY_API_KEY", tavily_key)
     set_key(dotenv_path, "USER_ID", user)
     set_key(dotenv_path, "DEFAULT_CONVERSATION_ID", "main")
+    set_key(dotenv_path, "HEARTBEAT_MAX_CYCLES", cycles)
+    set_key(dotenv_path, "HEARTBEAT_PERIOD", period)
 
 def ask_user(question: str, default=None, choices=None, required=True):
     while True:
@@ -78,9 +80,11 @@ def run_setup():
         host = ask_user("Pick The ARIA Server Host:\n", default="localhost")
         port = ask_user("Pick The ARIA Server Port:\n", default="65535")
         tavily_key = ask_user("Enter your Tavily API key:\n")
+        heartbeat_cycles = ask_user("How many cycles should ARIA run during a heartbeat session? (in # of cycles | default 6 cycles)\n", default="6")
+        heartbeat_period = ask_user("How often should ARIA check in during autonomous operation? (in minutes | default 10 minutes)\n", default="10")
         user = ask_user("What should I call you?\n")
 
-        generate_env_file(provider=provider, api_key=api_key, host=host, port=port, tavily_key=tavily_key, user=user)
+        generate_env_file(provider=provider, api_key=api_key, host=host, port=port, tavily_key=tavily_key, user=user, cycles=heartbeat_cycles, period=heartbeat_period)
 
         print("\033[32m.env file created successfully!")
 

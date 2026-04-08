@@ -1,6 +1,8 @@
 import sys
 import asyncio
 import time
+from pathlib import Path
+import os
 from aria.server import ARIAServer
 from aria.setup_wizard import run_setup
 from aria.heartbeat import send_event
@@ -12,12 +14,14 @@ def start_server():
     asyncio.run(server.start())
 
 def run_heartbeat():
+    interval = int(os.getenv("HEARTBEAT_MAX_CYCLES", "6"))
+    period = int(os.getenv("HEARTBEAT_PERIOD", "10"))
+    period_seconds = period * 60
     i = 0
     while True:
         asyncio.run(send_event())
-        time.sleep(600)  # Wait for 10 minutes before sending the next heartbeat
-        # For demonstration purposes, we'll stop after 1 hour (6 heartbeats)
-        if i == 6:
+        time.sleep(period_seconds)
+        if i == interval:
             break
         i+=1
 
