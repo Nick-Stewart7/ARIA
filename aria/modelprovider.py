@@ -30,12 +30,10 @@ class ModelProviderHandler():
                 "api_key": self.api_key,
             },
             # **model_config
-            max_tokens=1028,
+            max_tokens=16000,
             #todo change model id to dynamic user choice
-            model_id="claude-sonnet-4-20250514",
-            params={
-                "temperature": 0.7,
-            }
+            model_id="claude-sonnet-5",
+            params={}
         )
 
         return model

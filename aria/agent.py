@@ -5,7 +5,7 @@ import os
 from strands import Agent
 from strands.agent.conversation_manager import SummarizingConversationManager
 from strands.session.file_session_manager import FileSessionManager
-from strands_tools import file_read, file_write
+from strands_tools import file_read, file_write, shell, cron
 
 from aria.subagents.planner import planner
 from aria.subagents.programmer import programmer
@@ -41,7 +41,7 @@ def create_aria_instance(query, session_id: str, user_id: str = "user"):
         name="ARIA",
         system_prompt=prompt,
         model=model,
-        tools=[file_read, file_write, programmer, researcher_agent, observer, reflector, planner],
+        tools=[file_read, file_write, shell, cron, programmer, researcher_agent, observer, reflector, planner],
         conversation_manager=SummarizingConversationManager(),
         session_manager=FileSessionManager(
             session_id=session_id,
