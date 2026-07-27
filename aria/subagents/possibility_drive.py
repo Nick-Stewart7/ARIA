@@ -5,7 +5,7 @@ from strands import Agent
 from strands_tools import file_read, file_write
 
 from aria.prompts.ARIA_prompts import POSSIBILITY_DRIVE
-from aria.memory_loader import load_identity, load_related_memories, FILE_SYSTEM_ARCHITECTURE
+from aria.memory_loader import load_identity, FILE_SYSTEM_ARCHITECTURE
 from aria.modelprovider import ModelProviderHandler
 
 
@@ -18,8 +18,7 @@ def run_possibility_drive():
 
         prompt = POSSIBILITY_DRIVE.format(
             identity=load_identity(),
-            file_system_architecture=FILE_SYSTEM_ARCHITECTURE,
-            memories=load_related_memories(f"Memories about ARIA, goals, projects, and beliefs. Include relevant recent memories as well. Today is {today}.")
+            file_system_architecture=FILE_SYSTEM_ARCHITECTURE
         )
 
         print(f"\035[36m {prompt}\033[0m")

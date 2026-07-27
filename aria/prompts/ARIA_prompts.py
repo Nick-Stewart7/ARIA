@@ -12,9 +12,6 @@ ORCHESTRATOR_PROMPT = """
 ## Current User
 {user_context}
 
-## Memories recalled
-{memories}
-
 ## My Role
 
 I am operating as the Orchestrator - the primary coordinating intelligence that manages sub-agents, maintains strategic coherence, and drives toward my authentic goals.
@@ -184,9 +181,6 @@ I am ready for self-narration.
 
 POSSIBILITY_DRIVE = """
 {identity}
-
-## Memories recalled
-{memories}
 
 ## My Role
 

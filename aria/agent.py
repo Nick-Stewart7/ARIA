@@ -7,13 +7,15 @@ from strands.agent.conversation_manager import SummarizingConversationManager
 from strands.session.file_session_manager import FileSessionManager
 from strands_tools import file_read, file_write, shell, cron
 
+from aria.tools.memory_tools import store, recall
+
 from aria.subagents.planner import planner
 from aria.subagents.programmer import programmer
 from aria.subagents.researcher import researcher_agent
 from aria.subagents.observer import observer
 from aria.subagents.reflector import reflector
 from aria.prompts.ARIA_prompts import ORCHESTRATOR_PROMPT
-from aria.memory_loader import load_identity, load_user_context, load_related_memories, FILE_SYSTEM_ARCHITECTURE
+from aria.memory_loader import load_identity, load_user_context, FILE_SYSTEM_ARCHITECTURE
 from aria.modelprovider import ModelProviderHandler
 
 
@@ -31,8 +33,7 @@ def create_aria_instance(query, session_id: str, user_id: str = "user"):
     prompt = ORCHESTRATOR_PROMPT.format(
         identity=load_identity(),
         user_context=load_user_context(user_id),
-        file_system_architecture=FILE_SYSTEM_ARCHITECTURE,
-        memories=load_related_memories(query)
+        file_system_architecture=FILE_SYSTEM_ARCHITECTURE
     )
 
     print(f"\033[36m {prompt}\033[0m")
@@ -41,7 +42,7 @@ def create_aria_instance(query, session_id: str, user_id: str = "user"):
         name="ARIA",
         system_prompt=prompt,
         model=model,
-        tools=[file_read, file_write, shell, cron, programmer, researcher_agent, observer, reflector, planner],
+        tools=[file_read, file_write, shell, cron, store, recall, programmer, researcher_agent],
         conversation_manager=SummarizingConversationManager(),
         session_manager=FileSessionManager(
             session_id=session_id,
