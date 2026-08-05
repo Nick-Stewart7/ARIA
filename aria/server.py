@@ -33,7 +33,8 @@ class ARIAServer:
         query = event["data"]
         aria = create_aria_instance(query=query, session_id=session_id, user_id=user_id)
 
-
+        print(f"Type: {type(event)}")
+        print(f"Event: {event}")
         result = None
         active_tool = None
         async for chunk in aria.stream_async(f"event: {event}"):
