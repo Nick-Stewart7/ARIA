@@ -20,6 +20,8 @@ dependencies = [
     "tavily-python",
     "python-dotenv",
     "pyfiglet",
+    "fastapi",
+    "uvicorn",
 ]
 
 [project.scripts]

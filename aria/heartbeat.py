@@ -1,39 +1,44 @@
-# Client
 import asyncio
-import websockets
-import json
-import time
+import logging
 import os
 
+from aria.agent import run_turn
 from aria.subagents.possibility_drive import run_possibility_drive
 
-async def send_event():
-    HOST = os.getenv("HOST", "localhost")
-    PORT = os.getenv("PORT", "65535")
-    async with websockets.connect(f"ws://{HOST}:{PORT}", ping_timeout=None) as ws:
-        # generate input
-        self_prompt = run_possibility_drive()
-        print(f"\033[36m {self_prompt}\033[0m")
-        await ws.send(json.dumps({"type": "heartbeat", "entity_id": "system", "task_id": "heartbeat", "time": time.time(), "data": f"{self_prompt}"}))
-        # Receive until we get a final result or error
-        while True:
-            message = await ws.recv()
-            data = json.loads(message)
-            if data.get("type") == "status":
-                # print(f"  [{data.get('message')}]")
-                continue
-            elif data.get("type") == "result":
-                print(f"\n{data.get('reply')}\n")
-                break
-            elif data.get("type") == "error":
-                print(f"\n[error] {data.get('error')}\n")
-                break
+logger = logging.getLogger("aria")
 
-if __name__ == "__main__":
-    i = 0
+HEARTBEAT_SESSION_ID = os.getenv("HEARTBEAT_SESSION_ID", "heartbeat")
+HEARTBEAT_USER_ID = "aria"
+
+
+async def heartbeat_loop():
+    """Background task: ARIA prompts itself on a timer, in its own stable session.
+
+    Runs alongside the server in the same process — no separate process, no
+    HTTP round-trip to itself. Shares run_turn with the /chat route, just
+    self-triggered instead of triggered by an incoming request.
+    """
+    period_seconds = int(os.getenv("HEARTBEAT_PERIOD", "10")) * 60
+    logger.info(f"Heartbeat started (every {period_seconds}s, session={HEARTBEAT_SESSION_ID})")
+
     while True:
-        asyncio.run(send_event())
-        time.sleep(600)  # Wait for 10 minutes before sending the next heartbeat
-        if i == 6:
+        try:
+            await asyncio.sleep(period_seconds)
+
+            # run_possibility_drive() is a blocking LLM call — push it off the
+            # event loop so it doesn't stall chat requests while it runs.
+            self_prompt = await asyncio.to_thread(run_possibility_drive)
+            logger.info(f"Heartbeat firing: {self_prompt}")
+
+            response = await run_turn(
+                session_id=HEARTBEAT_SESSION_ID,
+                user_id=HEARTBEAT_USER_ID,
+                user_input=self_prompt,
+            )
+            logger.info(f"Heartbeat response: {response}")
+
+        except asyncio.CancelledError:
+            logger.info("Heartbeat shutting down.")
             break
-        i+=1
+        except Exception as e:
+            logger.error(f"Heartbeat error: {e}", exc_info=True)

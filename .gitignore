@@ -90,6 +90,7 @@ aria/memory/sessions/*
 # ARIA-generated artifacts (ships empty for fresh instances)
 artifacts/*
 !artifacts/.gitkeep
+archive/*
 
 # Vector memory database (runtime data, not source code)
 chroma_db/

@@ -1,7 +1,3 @@
-from datetime import datetime
-from pathlib import Path
-import os
-
 from strands import Agent
 from strands.agent.conversation_manager import SummarizingConversationManager
 from strands.session.file_session_manager import FileSessionManager
@@ -17,16 +13,11 @@ from aria.subagents.reflector import reflector
 from aria.prompts.ARIA_prompts import ORCHESTRATOR_PROMPT
 from aria.memory_loader import load_identity, load_user_context, FILE_SYSTEM_ARCHITECTURE
 from aria.modelprovider import ModelProviderHandler
+from aria.sessions import sessions_root
 
 
-def create_aria_instance(query, session_id: str, user_id: str = "user"):
+def create_aria_instance(session_id: str, user_id: str = "user"):
     """Factory function to create an instance of Aria."""
-    today = datetime.today().strftime('%Y-%m-%d')
-
-    #todo: make session id dynamic based on conv id or task id, and user id for multi user support
-    #todo: move session management to its own module and make it more robust with features like expiration, retrieval, etc. For now we just create a new session file for each run based on the date.
-    SESSION_DIR = Path(os.getenv("SESSION_DIR", "sessions")) / str(today)
-
     model_provider = ModelProviderHandler()
     model = model_provider.create()
 
@@ -46,8 +37,22 @@ def create_aria_instance(query, session_id: str, user_id: str = "user"):
         conversation_manager=SummarizingConversationManager(),
         session_manager=FileSessionManager(
             session_id=session_id,
-            storage_dir=SESSION_DIR
+            storage_dir=sessions_root()
         ),
         callback_handler=None
     )
     return aria
+
+
+async def run_turn(session_id: str, user_id: str, user_input: str) -> str:
+    """Build an ARIA agent for this session and run one turn, returning the reply.
+
+    The one place that drains stream_async and pulls out the result — chat
+    and heartbeat both go through this instead of each doing it themselves.
+    """
+    aria = create_aria_instance(session_id=session_id, user_id=user_id)
+    result = None
+    async for chunk in aria.stream_async(user_input):
+        if "result" in chunk:
+            result = chunk["result"]
+    return str(result)
