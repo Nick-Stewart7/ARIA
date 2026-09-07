@@ -22,6 +22,7 @@ dependencies = [
     "pyfiglet",
     "fastapi",
     "uvicorn",
+    "textual",
 ]
 
 [project.scripts]

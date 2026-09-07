@@ -1,5 +1,4 @@
 import sys
-import asyncio
 import os
 from dotenv import load_dotenv
 
@@ -12,7 +11,7 @@ configure_logging()  # must run before any aria module logs or calls basicConfig
 import argparse
 import uvicorn
 from aria.setup_wizard import run_setup
-from aria.client import chat
+from aria.tui import run as run_tui
 from aria.summary import run_memory_consolidation
 from aria.app import app
 from aria.ledger import print_ledger, follow_ledger, latest_entries_by_session
@@ -78,7 +77,7 @@ def main():
     match sys.argv[1] if len(sys.argv) > 1 else "help":
         case "serve": start_server()
         case "setup": run_setup()
-        case "chat": asyncio.run(chat(sys.argv[2:]))
+        case "chat": run_tui(sys.argv[2:])
         case "compact": pass #Todo add smart compact
         case "summarize": run_memory_consolidation()
         case "log": show_log(sys.argv[2:])
