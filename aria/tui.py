@@ -11,11 +11,35 @@ import httpx
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import VerticalScroll
+from textual.containers import Horizontal, VerticalScroll
+from textual.reactive import reactive
 from textual.widgets import Input, Static
 from textual.worker import get_current_worker
 
 from aria.client import _base_url, _parse_args, _resolve_session_id
+
+
+class StatusSegment(Static):
+    """One slot in the status bar. A subclass sets `value` and formats it in
+    `render()` -- adding a future segment means writing one more subclass and
+    one more line in compose(), nothing else touched."""
+
+    value = reactive("")
+
+    def render(self) -> str:
+        return str(self.value)
+
+
+class SessionSegment(StatusSegment):
+    def render(self) -> str:
+        return f"session: {self.value}" if self.value else "session: —"
+
+
+class TokenCostSegment(StatusSegment):
+    value = reactive(0)
+
+    def render(self) -> str:
+        return f"tokens: {self.value:,}"
 
 
 class AriaTUI(App):
@@ -36,6 +60,16 @@ class AriaTUI(App):
         color: $accent;
         margin: 0 0 1 0;
     }
+    #status_bar {
+        dock: bottom;
+        height: 1;
+        background: $panel;
+        color: $text-muted;
+    }
+    StatusSegment {
+        width: auto;
+        padding: 0 2;
+    }
     """
 
     def __init__(self, argv=None):
@@ -50,16 +84,19 @@ class AriaTUI(App):
         # _turn_in_flight, so a cancelled-but-still-unwinding old worker
         # can't clobber the flag while a newer turn is genuinely running.
         self._turn_generation = 0
+        self._total_tokens = 0
 
     def compose(self) -> ComposeResult:
         yield VerticalScroll(id="transcript")
         yield Input(placeholder="Message ARIA…")
+        yield Horizontal(SessionSegment(), TokenCostSegment(), id="status_bar")
 
     async def on_mount(self) -> None:
         timeout = httpx.Timeout(180.0, connect=5.0)
         self._client = httpx.AsyncClient(timeout=timeout)
         try:
             self.session_id = await _resolve_session_id(self._client, self.opts)
+            self.query_one(SessionSegment).value = self.session_id or ""
         except httpx.ConnectError:
             await self._mount_static(
                 "[error] Could not reach ARIA server. Is 'aria serve' running?", "aria-message"
@@ -150,12 +187,19 @@ class AriaTUI(App):
                         transcript.scroll_end(animate=False)
                     elif item.get("done"):
                         self.session_id = item.get("session_id", self.session_id)
+                        self.query_one(SessionSegment).value = self.session_id or ""
+                        # cumulative across the session, not just this turn --
+                        # a running total is what answers "am I burning tokens".
+                        usage = item.get("usage") or {}
+                        self._total_tokens += usage.get("totalTokens", 0)
+                        self.query_one(TokenCostSegment).value = self._total_tokens
                         # authoritative final text -- e.g. "Cancelled by
                         # user" on a cancelled turn, not just the deltas
                         # accumulated before the cancel took effect.
                         assistant_widget.update(f"ARIA: {item.get('response', accumulated)}")
                     elif "session_id" in item:
                         self.session_id = item["session_id"]
+                        self.query_one(SessionSegment).value = self.session_id or ""
         except httpx.ConnectError:
             assistant_widget.update("[error] Could not reach ARIA server. Is 'aria serve' running?")
         except httpx.HTTPStatusError as e:
