@@ -1,12 +1,13 @@
 import asyncio
+import json
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import logging
 from dataclasses import dataclass, field
 from typing import Optional
 from pydantic import BaseModel
-from aria.agent import run_turn
+from aria.agent import stream_turn, cancel_turn
 from aria.memory_manager import MemoryManager
 from aria.sessions import session_exists, new_session_id, list_sessions
 from aria.heartbeat import heartbeat_loop, pause as pause_heartbeat, resume as resume_heartbeat, is_enabled as heartbeat_enabled
@@ -52,13 +53,6 @@ class AriaSession:
         self.shared = shared
         self.session_id = session_id
         self.user_id = user_id
-    
-    async def process_message(self, user_input: str) -> str:
-        """
-        Process a single message through the Strands agent.
-        Returns ARIA's response.
-        """
-        return await run_turn(session_id=self.session_id, user_id=self.user_id, user_input=user_input)
 
 def initialize_shared_resources() -> SharedResources:
     """
@@ -128,10 +122,27 @@ def resolve_session(session_id: Optional[str], user_id: str) -> AriaSession:
 
 @app.post("/chat")
 async def handle_event(msg: ChatMessage):
-    """Endpoint to receive events from clients."""
+    """Stream a turn back as Server-Sent Events: one {"delta": ...} frame per
+    text chunk, ending with one {"done": true, session_id, response, usage}
+    frame. Session validation happens synchronously before streaming starts,
+    so an unknown --session id still comes back as a normal 404, not a
+    stream."""
     session = resolve_session(session_id=msg.session_id, user_id=msg.user_id)
-    response = await session.process_message(user_input=msg.message)
-    return {"status": "event processed", "response": response, "session_id": session.session_id}
+
+    async def sse():
+        async for item in stream_turn(session_id=session.session_id, user_id=session.user_id, user_input=msg.message):
+            yield f"data: {json.dumps(item)}\n\n"
+
+    return StreamingResponse(sse(), media_type="text/event-stream")
+
+class CancelMessage(BaseModel):
+    session_id: str
+
+@app.post("/chat/cancel")
+async def handle_cancel(msg: CancelMessage):
+    """Cancel a session's in-flight turn, if there is one. Not finding one
+    (already finished, or never started) is a harmless no-op, not an error."""
+    return {"cancelled": cancel_turn(msg.session_id)}
 
 @app.get("/sessions")
 async def get_sessions():
