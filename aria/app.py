@@ -1,6 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 import logging
 from dataclasses import dataclass, field
 from typing import Optional
@@ -10,7 +11,6 @@ from aria.memory_manager import MemoryManager
 from aria.sessions import session_exists, new_session_id, list_sessions
 from aria.heartbeat import heartbeat_loop
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("aria")
 
 
@@ -99,6 +99,11 @@ async def lifespan(app: FastAPI):
     #close clients etc
 
 app = FastAPI(lifespan=lifespan)
+
+@app.exception_handler(Exception)
+async def log_unhandled_exceptions(request: Request, exc: Exception):
+    logger.error(f"Unhandled error on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(status_code=500, content={"detail": "internal error"})
 
 class ChatMessage(BaseModel):
     user_id: str

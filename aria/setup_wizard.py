@@ -54,6 +54,7 @@ def map_directories():
     journal_dir = Path(project_root / "journal").resolve()
     identity_file = Path(memory_dir / "identity" / "ARIA.md").resolve()
     user_context = Path(memory_dir / "users").resolve()
+    log_dir = Path(project_root / "logs").resolve()
     dotenv_path = Path('.env')
     dotenv_path.touch(exist_ok=True)
 
@@ -64,6 +65,7 @@ def map_directories():
     set_key(dotenv_path, "JOURNAL_DIR", str(journal_dir))
     set_key(dotenv_path, "IDENTITY_FILE", str(identity_file))
     set_key(dotenv_path, "USER_CONTEXT_DIR", str(user_context))
+    set_key(dotenv_path, "LOG_DIR", str(log_dir))
 
 def run_setup():
     art = pyfiglet.figlet_format("ARIA", font="bulbhead")

@@ -5,17 +5,53 @@ from dotenv import load_dotenv
 
 load_dotenv()  # must run before anything reads SESSION_DIR/HOST/PORT/etc.
 
+from aria.logging_setup import configure_logging
+
+configure_logging()  # must run before any aria module logs or calls basicConfig
+
+import argparse
 import uvicorn
 from aria.setup_wizard import run_setup
 from aria.client import chat
 from aria.summary import run_memory_consolidation
 from aria.app import app
+from aria.ledger import print_ledger, follow_ledger, latest_entries_by_session
+from aria.sessions import list_sessions
 
 
 def start_server():
     # Heartbeat runs inside app's lifespan — starting the server is enough
     # to bring ARIA's autonomous cycle alive, no separate command needed.
     uvicorn.run(app, host=os.getenv("HOST", "localhost"), port=int(os.getenv("PORT", "65535")))
+
+
+def show_log(argv):
+    parser = argparse.ArgumentParser(prog="aria log", add_help=False)
+    parser.add_argument("--session", dest="session_id", default=None,
+                         help="only show this session's turns")
+    parser.add_argument("--tail", type=int, default=20,
+                         help="how many recent turns to show (default 20)")
+    parser.add_argument("--follow", "-f", action="store_true",
+                         help="keep watching and print new turns as they land")
+    opts = parser.parse_args(argv)
+
+    if opts.follow:
+        follow_ledger(session_id=opts.session_id)
+    else:
+        print_ledger(session_id=opts.session_id, tail=opts.tail)
+
+
+def show_sessions():
+    sessions = list_sessions()
+    if not sessions:
+        print("No sessions yet.")
+        return
+
+    previews = latest_entries_by_session()
+    for s in sessions:
+        entry = previews.get(s["session_id"])
+        preview = entry["input"].strip().replace("\n", " ")[:70] if entry else "(no ledger data)"
+        print(f"{s['session_id']:<28} {s['updated_at'][:19]}  {preview}")
 
 
 def main():
@@ -25,4 +61,6 @@ def main():
         case "chat": asyncio.run(chat(sys.argv[2:]))
         case "compact": pass #Todo add smart compact
         case "summarize": run_memory_consolidation()
-        case _: print("Please provide a valid command for ARIA || Commands: serve | setup | chat | compact | summarize")
+        case "log": show_log(sys.argv[2:])
+        case "sessions": show_sessions()
+        case _: print("Please provide a valid command for ARIA || Commands: serve | setup | chat | compact | summarize | log | sessions")

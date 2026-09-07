@@ -14,6 +14,7 @@ from aria.prompts.ARIA_prompts import ORCHESTRATOR_PROMPT
 from aria.memory_loader import load_identity, load_user_context, FILE_SYSTEM_ARCHITECTURE
 from aria.modelprovider import ModelProviderHandler
 from aria.sessions import sessions_root
+from aria.ledger import record_turn
 
 
 def create_aria_instance(session_id: str, user_id: str = "user"):
@@ -55,4 +56,6 @@ async def run_turn(session_id: str, user_id: str, user_input: str) -> str:
     async for chunk in aria.stream_async(user_input):
         if "result" in chunk:
             result = chunk["result"]
-    return str(result)
+    response = str(result)
+    record_turn(session_id=session_id, user_id=user_id, user_input=user_input, response=response)
+    return response
