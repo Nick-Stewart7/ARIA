@@ -10,14 +10,18 @@ import os
 import httpx
 from textual import work
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.widgets import Input, Static
+from textual.worker import get_current_worker
 
 from aria.client import _base_url, _parse_args, _resolve_session_id
 
 
 class AriaTUI(App):
     """ARIA chat, streamed token-by-token over Server-Sent Events."""
+
+    BINDINGS = [Binding("escape", "cancel", "Cancel")]
 
     CSS = """
     #transcript {
@@ -40,6 +44,12 @@ class AriaTUI(App):
         self.user_id = os.getenv("USER_ID", "user")
         self.session_id: str | None = None
         self._client: httpx.AsyncClient | None = None
+        self._turn_in_flight = False
+        # Bumped each time a new turn starts. A superseded turn's `finally`
+        # compares its own generation against this before clearing
+        # _turn_in_flight, so a cancelled-but-still-unwinding old worker
+        # can't clobber the flag while a newer turn is genuinely running.
+        self._turn_generation = 0
 
     def compose(self) -> ComposeResult:
         yield VerticalScroll(id="transcript")
@@ -69,15 +79,51 @@ class AriaTUI(App):
             return
         self.query_one(Input).value = ""
 
+        if self._turn_in_flight:
+            # A previous turn is still streaming -- this is a redirect, not
+            # just a new message. @work(exclusive=True) below will cancel
+            # the old *local* worker's read loop once the new one starts,
+            # but that alone never reaches the server: the old turn would
+            # keep generating (and spending tokens) invisibly. Tell the
+            # server to stop it first, same as Escape does.
+            await self._cancel_active_turn()
+
         await self._mount_static(f"You: {text}", "user-message")
         assistant_widget = await self._mount_static("ARIA: …", "aria-message")
 
-        self.send_message(text, assistant_widget)
+        self._turn_generation += 1
+        self.send_message(text, assistant_widget, self._turn_generation)
+
+    async def action_cancel(self) -> None:
+        """Escape: stop the in-flight turn server-side.
+
+        Deliberately does NOT force-cancel the local worker: that would
+        race the server's own graceful wind-down and usually win, leaving
+        the widget stuck on the "..." placeholder instead of showing the
+        authoritative "Cancelled by user" text Strands persists -- letting
+        the read loop keep draining picks that final frame up naturally,
+        moments later.
+        """
+        if not self._turn_in_flight:
+            return
+        await self._cancel_active_turn()
+
+    async def _cancel_active_turn(self) -> None:
+        if not self.session_id:
+            return
+        try:
+            await self._client.post(
+                f"{_base_url()}/chat/cancel", json={"session_id": self.session_id}
+            )
+        except httpx.HTTPError:
+            pass  # best-effort -- worst case the turn just runs to completion
 
     @work(exclusive=True)
-    async def send_message(self, text: str, assistant_widget: Static) -> None:
+    async def send_message(self, text: str, assistant_widget: Static, generation: int) -> None:
         transcript = self.query_one("#transcript", VerticalScroll)
+        worker = get_current_worker()
         accumulated = ""
+        self._turn_in_flight = True
         try:
             async with self._client.stream(
                 "POST",
@@ -93,6 +139,8 @@ class AriaTUI(App):
                     return
                 response.raise_for_status()
                 async for line in response.aiter_lines():
+                    if worker.is_cancelled:
+                        break  # cancelled mid-read -- drop anything still in flight
                     if not line.startswith("data: "):
                         continue
                     item = json.loads(line[len("data: "):])
@@ -102,12 +150,19 @@ class AriaTUI(App):
                         transcript.scroll_end(animate=False)
                     elif item.get("done"):
                         self.session_id = item.get("session_id", self.session_id)
+                        # authoritative final text -- e.g. "Cancelled by
+                        # user" on a cancelled turn, not just the deltas
+                        # accumulated before the cancel took effect.
+                        assistant_widget.update(f"ARIA: {item.get('response', accumulated)}")
                     elif "session_id" in item:
                         self.session_id = item["session_id"]
         except httpx.ConnectError:
             assistant_widget.update("[error] Could not reach ARIA server. Is 'aria serve' running?")
         except httpx.HTTPStatusError as e:
             assistant_widget.update(f"[error] {e.response.status_code}: {e.response.text}")
+        finally:
+            if generation == self._turn_generation:
+                self._turn_in_flight = False
 
 
 def run(argv=None):
