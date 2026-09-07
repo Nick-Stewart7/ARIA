@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from aria.agent import run_turn
 from aria.memory_manager import MemoryManager
 from aria.sessions import session_exists, new_session_id, list_sessions
-from aria.heartbeat import heartbeat_loop
+from aria.heartbeat import heartbeat_loop, pause as pause_heartbeat, resume as resume_heartbeat, is_enabled as heartbeat_enabled
 
 logger = logging.getLogger("aria")
 
@@ -137,3 +137,17 @@ async def handle_event(msg: ChatMessage):
 async def get_sessions():
     """List existing sessions, most recently updated first."""
     return {"sessions": list_sessions()}
+
+@app.get("/heartbeat")
+async def get_heartbeat_status():
+    return {"enabled": heartbeat_enabled()}
+
+@app.post("/heartbeat/pause")
+async def post_heartbeat_pause():
+    pause_heartbeat()
+    return {"enabled": heartbeat_enabled()}
+
+@app.post("/heartbeat/resume")
+async def post_heartbeat_resume():
+    resume_heartbeat()
+    return {"enabled": heartbeat_enabled()}

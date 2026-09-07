@@ -17,6 +17,7 @@ from aria.summary import run_memory_consolidation
 from aria.app import app
 from aria.ledger import print_ledger, follow_ledger, latest_entries_by_session
 from aria.sessions import list_sessions
+from aria.client import _base_url
 
 
 def start_server():
@@ -54,6 +55,25 @@ def show_sessions():
         print(f"{s['session_id']:<28} {s['updated_at'][:19]}  {preview}")
 
 
+def heartbeat_control(argv):
+    import httpx
+
+    action = argv[0] if argv else "status"
+    route = {"pause": "/heartbeat/pause", "resume": "/heartbeat/resume", "status": "/heartbeat"}.get(action)
+    if route is None:
+        print("Usage: aria heartbeat [pause|resume|status]")
+        return
+
+    try:
+        method = httpx.post if route != "/heartbeat" else httpx.get
+        response = method(f"{_base_url()}{route}")
+        response.raise_for_status()
+        enabled = response.json().get("enabled")
+        print(f"Heartbeat is {'running' if enabled else 'paused'}.")
+    except httpx.ConnectError:
+        print("[error] Could not reach ARIA server. Is 'aria serve' running?")
+
+
 def main():
     match sys.argv[1] if len(sys.argv) > 1 else "help":
         case "serve": start_server()
@@ -63,4 +83,5 @@ def main():
         case "summarize": run_memory_consolidation()
         case "log": show_log(sys.argv[2:])
         case "sessions": show_sessions()
-        case _: print("Please provide a valid command for ARIA || Commands: serve | setup | chat | compact | summarize | log | sessions")
+        case "heartbeat": heartbeat_control(sys.argv[2:])
+        case _: print("Please provide a valid command for ARIA || Commands: serve | setup | chat | compact | summarize | log | sessions | heartbeat")

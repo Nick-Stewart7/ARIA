@@ -10,6 +10,41 @@ logger = logging.getLogger("aria")
 HEARTBEAT_SESSION_ID = os.getenv("HEARTBEAT_SESSION_ID", "heartbeat")
 HEARTBEAT_USER_ID = "aria"
 
+PAUSE_POLL_SECONDS = 5
+
+# Cleared to pause: no possibility_drive call, no agent turn, no tokens spent.
+# Set by default so heartbeat runs unless explicitly paused.
+_enabled = asyncio.Event()
+_enabled.set()
+
+
+def pause() -> None:
+    _enabled.clear()
+    logger.info("Heartbeat paused.")
+
+
+def resume() -> None:
+    _enabled.set()
+    logger.info("Heartbeat resumed.")
+
+
+def is_enabled() -> bool:
+    return _enabled.is_set()
+
+
+async def _sleep_unless_paused(total_seconds: float) -> bool:
+    """Sleep for total_seconds in short steps, returning early (False) if
+    paused mid-sleep so a pause takes effect within PAUSE_POLL_SECONDS
+    instead of waiting out the whole period."""
+    elapsed = 0.0
+    while elapsed < total_seconds:
+        if not _enabled.is_set():
+            return False
+        step = min(PAUSE_POLL_SECONDS, total_seconds - elapsed)
+        await asyncio.sleep(step)
+        elapsed += step
+    return _enabled.is_set()
+
 
 async def heartbeat_loop():
     """Background task: ARIA prompts itself on a timer, in its own stable session.
@@ -23,7 +58,10 @@ async def heartbeat_loop():
 
     while True:
         try:
-            await asyncio.sleep(period_seconds)
+            await _enabled.wait()  # blocks here entirely while paused
+
+            if not await _sleep_unless_paused(period_seconds):
+                continue  # paused mid-sleep — skip this cycle, no tokens spent
 
             # run_possibility_drive() is a blocking LLM call — push it off the
             # event loop so it doesn't stall chat requests while it runs.
