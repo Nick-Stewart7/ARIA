@@ -38,42 +38,52 @@ This collects your model provider, API keys, host/port, and username — then wr
 Once setup is complete:
 
 ```bash
-aria serve       # Start the WebSocket server (core runtime)
-aria chat        # Terminal chat client (requires server running)
-aria heartbeat   # Fire autonomous heartbeat cycles every 10 minutes
-aria summarize   # Run nightly memory consolidation (Tier 3)
+aria serve                    # Start the REST API server — also runs the heartbeat loop
+aria chat                     # Textual TUI chat client (requires server running)
+aria chat --continue          # Resume the most recently active session
+aria chat --session <id>      # Resume a specific session by id
+aria heartbeat [pause|resume|status]   # Control the autonomous heartbeat without stopping the server
+aria log [--session <id>] [--tail N] [--follow]   # Read the human-readable activity ledger
+aria sessions                 # List existing sessions with a preview of their last turn
+aria summarize                # Run memory consolidation (Tier 3)
 ```
 
-**`aria heartbeat`** is what drives ARIA's autonomous behavior. When a heartbeat fires, the Possibility Drive sub-agent generates a self-directed prompt, which is sent to ARIA to act on — entirely without human input.
+Starting `aria serve` is enough to bring ARIA's autonomous heartbeat cycle alive — no separate command needed. Each time it fires, the Possibility Drive sub-agent generates a self-directed prompt, which is sent to ARIA to act on — entirely without human input. Because that costs real tokens on a timer, `aria heartbeat pause` stops it without killing the server (chat keeps working); `aria heartbeat resume` turns it back on.
+
+**`aria chat`** opens a Textual TUI: a scrolling chat pane with token-by-token streaming over Server-Sent Events, `Escape` to cancel a response mid-generation, and a status bar showing the current session id and cumulative token usage. Sending a new message while one is still streaming cancels the old turn server-side and redirects — it doesn't keep generating in the background.
+
+Every turn — chat or heartbeat — is recorded to a plain-JSONL ledger at `memory/ledger.jsonl`, readable with `aria log`. Server logs (startup, errors, heartbeat activity) go to `logs/aria.log`, rotated automatically.
 
 ---
 
 ## Architecture
 
-ARIA is built around a single orchestrator agent that delegates to a set of specialized sub-agents as tools.
+ARIA is built around a single orchestrator agent that delegates to a set of specialized sub-agents as tools, fronted by a REST API.
 
 ```
-Incoming Event (WebSocket)
-        │
-        ▼
-  ┌───────────┐
-  │   ARIA    │  ← Orchestrator (aria/agent.py)
-  │(Orchestr.)│    - Loads 3-tier memory context on startup
-  │           │    - Manages session continuity
-  └─────┬─────┘
-        │  delegates to
+aria chat (Textual TUI)              aria heartbeat_loop (background task)
+        │  SSE stream                        │  in-process
+        ▼                                     ▼
+  POST /chat, /chat/cancel      ┌───────────┐
+        │                       │   ARIA    │  ← Orchestrator (aria/agent.py)
+        └──────────────────────▶│(Orchestr.)│    - Loads 3-tier memory context on startup
+                                 │           │    - Manages session continuity
+                                 └─────┬─────┘
+                                       │  delegates to
    ┌────┴──────────────────────────────────────┐
    │          |           |        |           │
    ▼          ▼           ▼        ▼           ▼
 Observer  Reflector  Programmer  Researcher  Planner
 ```
 
+The FastAPI app (`aria/app.py`) is the single runtime: `aria serve` starts it, and the heartbeat loop runs as a background task inside its own lifespan — chat sessions and the heartbeat session are fully isolated from each other (distinct session ids, and a chat-side cancel can never reach a heartbeat turn or vice versa).
+
 ### Sub-Agents
 
 | Agent                 | Role                                                  | Tools                                                   |
 | --------------------- | ----------------------------------------------------- | ------------------------------------------------------- |
 | **Observer**          | Analyzes incoming signals and environment state       | `file_read`                                             |
-| **Reflector**         | Metacognitive self-evaluation; writes journal entries | `file_read`, `file_write`                               |
+| **Reflector**         | Metacognitive self-evaluation; writes journal entries | `file_read`, `journal`                                  |
 | **Programmer**        | Code generation, debugging, and file output           | `file_read`, `file_write`                               |
 | **Researcher**        | Web research and information synthesis                | `web_search`, `file_read`, `file_write`, `current_time` |
 | **Planner**           | Decomposes objectives into structured task plans      | `file_read`, `file_write`                               |
@@ -103,8 +113,9 @@ Static and semi-static files that persist across all sessions.
 
 Within a session, ARIA uses Strands' built-in session management to maintain turn history and tool call context. Long sessions are automatically summarized to stay within context limits.
 
-- **`FileSessionManager`** — persists session state to `memory/sessions/<date>/<session_id>/`
+- **`FileSessionManager`** — persists session state to `memory/sessions/session_<session_id>/`
 - **`SummarizingConversationManager`** — auto-summarizes long conversation histories to prevent context overflow
+- **`aria/ledger.py`** — a flat, human-readable JSONL log of every turn (chat or heartbeat) layered on top, used for session previews/recency ordering and `aria log`
 
 ### Tier 3 — Dynamic Long-Term Memory (Vector Recall)
 
@@ -155,11 +166,15 @@ To fully reset a running instance:
 ```
 ARIA/
 ├── aria/
-│   ├── cli.py                   # Entry point — aria serve | chat | heartbeat | etc.
-│   ├── server.py                # WebSocket server — core runtime
-│   ├── agent.py                 # ARIA orchestrator factory
-│   ├── heartbeat.py             # Autonomous heartbeat trigger
-│   ├── interface.py             # Terminal chat client
+│   ├── cli.py                   # Entry point — aria serve | chat | heartbeat | log | sessions | etc.
+│   ├── app.py                   # FastAPI app — /chat (SSE), /chat/cancel, /sessions, /heartbeat*
+│   ├── agent.py                 # ARIA orchestrator factory + run_turn/stream_turn
+│   ├── heartbeat.py             # Autonomous heartbeat loop, with pause/resume
+│   ├── tui.py                   # Textual chat TUI — streaming, cancel/redirect, status bar
+│   ├── client.py                # Shared HTTP helpers (base URL, session resolution) used by the TUI
+│   ├── sessions.py              # Session listing/minting/existence checks
+│   ├── ledger.py                # Human-readable JSONL activity ledger + `aria log`
+│   ├── logging_setup.py         # Rotating file + console logging, configured once at startup
 │   ├── memory_loader.py         # Loads identity, user context, and recalled memories
 │   ├── memory_manager.py        # ChromaDB wrapper for vector memory store/recall
 │   ├── setup_wizard.py          # First-time setup wizard
@@ -176,16 +191,19 @@ ARIA/
 │   ├── prompts/
 │   │   └── ARIA_prompts.py      # All system prompt templates
 │   ├── tools/
-│   │   └── web_search.py        # Tavily web search tool
+│   │   ├── web_search.py        # Tavily web search tool
+│   │   └── memory_tools.py      # store/recall tools backing ARIA's own memory access
 │   └── output_models/
 │       └── models.py            # Pydantic output schemas (Memory_Output)
 ├── memory/
 │   ├── identity/                # ARIA's core identity files (ships with repo)
 │   ├── semantic/                # Conceptual knowledge
 │   ├── procedural/              # Process knowledge
-│   └── sessions/                # Strands session state (gitignored)
+│   ├── sessions/                # Strands session state (gitignored)
+│   └── ledger.jsonl             # Activity ledger (gitignored)
 ├── journal/                     # Autonomous reflection entries (gitignored)
 ├── artifacts/                   # Everything ARIA creates (gitignored, ships empty)
+├── logs/                        # Rotating server logs (gitignored)
 ├── chroma_db/                   # Vector memory database (gitignored)
 └── pyproject.toml
 ```
@@ -195,7 +213,9 @@ ARIA/
 ## Built With
 
 - [Strands Agents SDK](https://github.com/strands-agents/sdk-python) — multi-agent framework by AWS
+- [FastAPI](https://fastapi.tiangolo.com/) / [uvicorn](https://www.uvicorn.org/) — REST API server, streaming `/chat` over Server-Sent Events
+- [Textual](https://textual.textualize.io/) — the `aria chat` terminal UI
+- [httpx](https://www.python-httpx.org/) — async HTTP client used by the TUI
 - [ChromaDB](https://www.trychroma.com/) — local vector database for long-term memory
-- [websockets](https://websockets.readthedocs.io/) — async WebSocket server/client
 - [Tavily](https://tavily.com/) — web search for the Researcher sub-agent
 - [pyfiglet](https://github.com/pwaller/pyfiglet) — ASCII art for the setup wizard

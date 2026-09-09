@@ -28,8 +28,6 @@ def create_aria_instance(session_id: str, user_id: str = "user"):
         file_system_architecture=FILE_SYSTEM_ARCHITECTURE
     )
 
-    print(f"\033[36m {prompt}\033[0m")
-
     aria = Agent(
         name="ARIA",
         system_prompt=prompt,
