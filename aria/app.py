@@ -12,6 +12,7 @@ from aria.memory_manager import MemoryManager
 from aria.sessions import session_exists, new_session_id
 from aria.history import list_sessions
 from aria.heartbeat import heartbeat_loop, pause as pause_heartbeat, resume as resume_heartbeat, is_enabled as heartbeat_enabled
+from aria import manifest
 
 logger = logging.getLogger("aria")
 
@@ -80,6 +81,7 @@ def initialize_shared_resources() -> SharedResources:
 async def lifespan(app: FastAPI):
     #Start up
     logger.info("Starting up...")
+    manifest.ensure_layout()
     shared = initialize_shared_resources()
     app.state.shared = shared
     heartbeat_task = asyncio.create_task(heartbeat_loop())

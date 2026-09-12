@@ -96,12 +96,18 @@ Sub-agents are implemented as `@tool`-decorated functions in `aria/subagents/`, 
 > `archive/code-2026-09/`, with the memory files ARIA wrote under it in `archive/memory-2026-09/`
 > and `archive/journal-2026/`.
 
-**Injected into the system prompt** (`aria/memory_loader.py`), every turn:
+**Injected into the system prompt**, every turn. `aria/manifest.py` is the one place that knows
+the layout under `MEMORY_DIR` and each artifact's policy; `aria/context.py` reads them (file reads
+only — no tools, no LLM calls) and fills the prompt templates, stable content first so the prompt
+cache keeps the prefix. Chat turns and heartbeat cycles get the same context.
 
-| Path                          | Purpose                                                  |
-| ----------------------------- | -------------------------------------------------------- |
-| `memory/identity/ARIA.md`     | Core identity — in every agent's system prompt           |
-| `memory/users/<user_id>.md`   | Per-user context — orchestrator only                     |
+| Path                          | Policy    | Purpose                                                    |
+| ----------------------------- | --------- | ---------------------------------------------------------- |
+| `memory/identity/ARIA.md`     | always    | Core identity — in every agent's system prompt             |
+| `memory/users/<user_id>.md`   | always    | Per-user context — orchestrator only; heartbeat gets a note that the cycle is self-directed |
+| `memory/digests/<session>.md` | recent    | One digest per session; the 3 newest are injected (Pass 3 writes them) |
+| `memory/sessions/`            | on demand | Raw Strands session files — read via `aria log`            |
+| `artifacts/`                  | on demand | Things ARIA makes                                          |
 
 **Session history** — Strands' `FileSessionManager` persists every session to
 `memory/sessions/session_<session_id>/`, one JSON file per raw message; `SummarizingConversationManager`
@@ -143,16 +149,17 @@ ARIA/
 │   ├── heartbeat.py             # Autonomous heartbeat loop, with pause/resume
 │   ├── tui.py                   # Textual chat TUI — streaming, cancel/redirect, status bar
 │   ├── client.py                # Shared HTTP helpers (base URL, session resolution) used by the TUI
-│   ├── sessions.py              # Session listing/minting/existence checks
+│   ├── sessions.py              # Session ids, roots, heartbeat ids
 │   ├── history.py               # Reads session files as turns; backs `aria log` / `aria sessions`
 │   ├── logging_setup.py         # Rotating file + console logging, configured once at startup
-│   ├── memory_loader.py         # Loads identity and user context into the system prompt
+│   ├── manifest.py              # Memory layout under MEMORY_DIR + per-artifact injection policy
+│   ├── context.py               # Gathers identity, user model, recent digests into the prompt
 │   ├── memory_manager.py        # ChromaDB wrapper for vector memory store/recall
 │   ├── setup_wizard.py          # First-time setup wizard
 │   ├── subagents/
 │   │   ├── programmer.py
 │   │   ├── researcher.py
-│   │   └── possibility_drive.py # Generates self-directed heartbeat prompts
+│   │   └── possibility_drive.py # Generates self-directed heartbeat prompts from the gathered context
 │   ├── prompts/
 │   │   └── ARIA_prompts.py      # All system prompt templates
 │   └── tools/
@@ -161,6 +168,7 @@ ARIA/
 ├── memory/
 │   ├── identity/                # ARIA's core identity (ships with repo)
 │   ├── users/                   # Per-user context files
+│   ├── digests/                 # One digest per session (gitignored)
 │   └── sessions/                # Strands session state (gitignored)
 ├── archive/                     # Retired code, old memory files, journals (gitignored)
 ├── artifacts/                   # Everything ARIA creates (gitignored, ships empty)

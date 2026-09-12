@@ -15,6 +15,8 @@ from dotenv import set_key
 from pathlib import Path
 import pyfiglet
 
+from aria import manifest
+
 def generate_env_file(provider:str, api_key:str, host:str, port:str, tavily_key:str, user:str, period:str):
     dotenv_path = Path('.env')
     dotenv_path.touch(exist_ok=True)
@@ -46,26 +48,20 @@ def ask_user(question: str, default=None, choices=None, required=True):
         return value
     
 def map_directories():
+    """Pin the top-level roots in .env; everything under them (identity,
+    users, digests) is laid out by aria.manifest, not configured."""
     project_root  = Path(__file__).parent.parent.resolve()
     memory_dir = Path(project_root / "memory").resolve()
-    session_dir = Path(memory_dir / "sessions").resolve()
-    chroma_db_dir = Path(project_root / "chroma_db").resolve()
-    artifacts_dir = Path(project_root / "artifacts").resolve()
-    journal_dir = Path(project_root / "journal").resolve()
-    identity_file = Path(memory_dir / "identity" / "ARIA.md").resolve()
-    user_context = Path(memory_dir / "users").resolve()
-    log_dir = Path(project_root / "logs").resolve()
     dotenv_path = Path('.env')
     dotenv_path.touch(exist_ok=True)
 
     set_key(dotenv_path, "MEMORY_DIR", str(memory_dir))
-    set_key(dotenv_path, "SESSION_DIR", str(session_dir))
-    set_key(dotenv_path, "CHROMA_DB_DIR", str(chroma_db_dir))
-    set_key(dotenv_path, "ARTIFACTS_DIR", str(artifacts_dir))
-    set_key(dotenv_path, "JOURNAL_DIR", str(journal_dir))
-    set_key(dotenv_path, "IDENTITY_FILE", str(identity_file))
-    set_key(dotenv_path, "USER_CONTEXT_DIR", str(user_context))
-    set_key(dotenv_path, "LOG_DIR", str(log_dir))
+    set_key(dotenv_path, "SESSION_DIR", str(memory_dir / "sessions"))
+    set_key(dotenv_path, "CHROMA_DB_DIR", str(project_root / "chroma_db"))
+    set_key(dotenv_path, "ARTIFACTS_DIR", str(project_root / "artifacts"))
+    set_key(dotenv_path, "LOG_DIR", str(project_root / "logs"))
+
+    manifest.ensure_layout()
 
 def run_setup():
     art = pyfiglet.figlet_format("ARIA", font="bulbhead")

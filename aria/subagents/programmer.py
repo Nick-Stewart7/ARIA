@@ -2,7 +2,7 @@ from strands import Agent, tool
 from strands.agent.conversation_manager import SummarizingConversationManager
 from strands_tools import file_read, file_write
 from aria.prompts.ARIA_prompts import PROGRAMMER_PROMPT
-from aria.memory_loader import load_identity, FILE_SYSTEM_ARCHITECTURE
+from aria.context import gather
 from aria.modelprovider import ModelProviderHandler
 
 
@@ -22,10 +22,7 @@ def programmer(task: str) -> str:
         model = model_provider.create()
         programming_agent = Agent(
             name="code_assistant_agent",
-            system_prompt=PROGRAMMER_PROMPT.format(
-                identity=load_identity(),
-                file_system_architecture=FILE_SYSTEM_ARCHITECTURE,
-            ),
+            system_prompt=PROGRAMMER_PROMPT.format(**gather().slots()),
             model=model,
             tools=[file_read, file_write],
             conversation_manager=SummarizingConversationManager(),

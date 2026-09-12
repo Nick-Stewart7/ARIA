@@ -8,7 +8,7 @@ from aria.tools.memory_tools import store, recall
 from aria.subagents.programmer import programmer
 from aria.subagents.researcher import researcher_agent
 from aria.prompts.ARIA_prompts import ORCHESTRATOR_PROMPT
-from aria.memory_loader import load_identity, load_user_context, FILE_SYSTEM_ARCHITECTURE
+from aria.context import gather
 from aria.modelprovider import ModelProviderHandler
 from aria.sessions import sessions_root
 
@@ -18,11 +18,7 @@ def create_aria_instance(session_id: str, user_id: str = "user"):
     model_provider = ModelProviderHandler()
     model = model_provider.create()
 
-    prompt = ORCHESTRATOR_PROMPT.format(
-        identity=load_identity(),
-        user_context=load_user_context(user_id),
-        file_system_architecture=FILE_SYSTEM_ARCHITECTURE
-    )
+    prompt = ORCHESTRATOR_PROMPT.format(**gather(user_id).slots())
 
     aria = Agent(
         name="ARIA",

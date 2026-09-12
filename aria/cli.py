@@ -1,9 +1,7 @@
 import sys
 import os
-from dotenv import load_dotenv
 
-load_dotenv()  # must run before anything reads SESSION_DIR/HOST/PORT/etc.
-
+# .env is loaded by aria/__init__.py, before any module reads its settings.
 from aria.logging_setup import configure_logging
 
 configure_logging()  # must run before any aria module logs or calls basicConfig

@@ -3,7 +3,7 @@ from strands.agent.conversation_manager import SummarizingConversationManager
 from strands_tools import file_read, file_write, current_time
 from aria.tools.web_search import web_search
 from aria.prompts.ARIA_prompts import RESEARCHER_PROMPT
-from aria.memory_loader import load_identity, FILE_SYSTEM_ARCHITECTURE
+from aria.context import gather
 from aria.modelprovider import ModelProviderHandler
 
 @tool
@@ -22,10 +22,7 @@ def researcher_agent(query: str) -> str:
         model = model_provider.create()
         agent = Agent(
             name="researcher_agent",
-            system_prompt=RESEARCHER_PROMPT.format(
-                identity=load_identity(),
-                file_system_architecture=FILE_SYSTEM_ARCHITECTURE,
-            ),
+            system_prompt=RESEARCHER_PROMPT.format(**gather().slots()),
             model=model,
             tools=[web_search, file_read, file_write, current_time],
             conversation_manager=SummarizingConversationManager(),

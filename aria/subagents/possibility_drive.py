@@ -1,36 +1,32 @@
-from pathlib import Path
-from datetime import datetime
-
 from strands import Agent
-from strands_tools import file_read, file_write
 
 from aria.prompts.ARIA_prompts import POSSIBILITY_DRIVE
-from aria.memory_loader import load_identity, FILE_SYSTEM_ARCHITECTURE
+from aria.context import gather
+from aria.sessions import HEARTBEAT_USER_ID
 from aria.modelprovider import ModelProviderHandler
 
 
 def run_possibility_drive():
-    """Runs self prompt generation"""
+    """Generate the input for ARIA's next autonomous cycle.
+
+    Gets the same gathered context a chat turn does -- identity, file
+    system, recent digests -- so it grounds the next cycle in what's
+    actually in memory instead of reading files to find out. No tools.
+    """
     try:
         model_provider = ModelProviderHandler()
         model = model_provider.create()
-        today = datetime.today().strftime('%Y-%m-%d')
 
-        prompt = POSSIBILITY_DRIVE.format(
-            identity=load_identity(),
-            file_system_architecture=FILE_SYSTEM_ARCHITECTURE
-        )
+        prompt = POSSIBILITY_DRIVE.format(**gather(HEARTBEAT_USER_ID).slots())
 
-        print(f"\035[36m {prompt}\033[0m")
-
-        probability_drive = Agent(
+        possibility_drive = Agent(
             name="ARIA",
             system_prompt=prompt,
             model=model,
-            tools=[file_read, file_write]
+            tools=[],
         )
 
-        response = probability_drive("Generate the input for ARIA's next autonomous cycle")
+        response = possibility_drive("Generate the input for ARIA's next autonomous cycle")
         return str(response)
     except Exception as e:
-        return f"Error running probability drive: {str(e)}"
+        return f"Error running possibility drive: {str(e)}"

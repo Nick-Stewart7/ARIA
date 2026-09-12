@@ -1,11 +1,11 @@
 import chromadb
-import os
 import uuid
+
+from aria import manifest
 
 class MemoryManager:
     def __init__(self):
-        path = os.getenv("CHROMA_DB_DIR", "chroma_db")
-        self.client = chromadb.PersistentClient(path=path)
+        self.client = chromadb.PersistentClient(path=str(manifest.chroma_dir()))
         self.collection = self.client.get_or_create_collection("sessions")
 
     def store(self, session_id: str, content: str):
