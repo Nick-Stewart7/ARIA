@@ -96,4 +96,5 @@ archive/*
 chroma_db/
 
 # Session summary cache
-subagents/memory/summaries/
+aria/subagents/memory/
+memory/summaries/
