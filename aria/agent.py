@@ -14,7 +14,6 @@ from aria.prompts.ARIA_prompts import ORCHESTRATOR_PROMPT
 from aria.memory_loader import load_identity, load_user_context, FILE_SYSTEM_ARCHITECTURE
 from aria.modelprovider import ModelProviderHandler
 from aria.sessions import sessions_root
-from aria.ledger import record_turn
 
 
 def create_aria_instance(session_id: str, user_id: str = "user"):
@@ -48,16 +47,14 @@ async def run_turn(session_id: str, user_id: str, user_input: str) -> str:
 
     The one place that drains stream_async and pulls out the result — heartbeat
     goes through this (never streams to anyone). The streaming chat path is
-    stream_turn() below, which shares the same agent-creation and ledger seam.
+    stream_turn() below, which shares the same agent-creation seam.
     """
     aria = create_aria_instance(session_id=session_id, user_id=user_id)
     result = None
     async for chunk in aria.stream_async(user_input):
         if "result" in chunk:
             result = chunk["result"]
-    response = str(result)
-    record_turn(session_id=session_id, user_id=user_id, user_input=user_input, response=response)
-    return response
+    return str(result)
 
 
 # Agents with a turn currently in flight, keyed by session_id -- lets
@@ -92,7 +89,6 @@ async def stream_turn(session_id: str, user_id: str, user_input: str):
         _active_agents.pop(session_id, None)
 
     response = str(result)
-    record_turn(session_id=session_id, user_id=user_id, user_input=user_input, response=response)
 
     usage = result.metrics.accumulated_usage if result else {}
     yield {

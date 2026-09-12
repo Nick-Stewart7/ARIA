@@ -14,8 +14,7 @@ from aria.setup_wizard import run_setup
 from aria.tui import run as run_tui
 from aria.summary import run_memory_consolidation
 from aria.app import app
-from aria.ledger import print_ledger, follow_ledger, latest_entries_by_session
-from aria.sessions import list_sessions
+from aria.history import print_log, follow_log, list_sessions, last_turn
 from aria.client import _base_url
 
 
@@ -36,9 +35,9 @@ def show_log(argv):
     opts = parser.parse_args(argv)
 
     if opts.follow:
-        follow_ledger(session_id=opts.session_id)
+        follow_log(session_id=opts.session_id)
     else:
-        print_ledger(session_id=opts.session_id, tail=opts.tail)
+        print_log(session_id=opts.session_id, tail=opts.tail)
 
 
 def show_sessions():
@@ -47,11 +46,10 @@ def show_sessions():
         print("No sessions yet.")
         return
 
-    previews = latest_entries_by_session()
     for s in sessions:
-        entry = previews.get(s["session_id"])
-        preview = entry["input"].strip().replace("\n", " ")[:70] if entry else "(no ledger data)"
-        print(f"{s['session_id']:<28} {s['updated_at'][:19]}  {preview}")
+        turn = last_turn(s.session_id)
+        preview = turn.input.strip().replace("\n", " ")[:70] if turn else "(no turns yet)"
+        print(f"{s.session_id:<28} {s.updated_at[:19]}  {preview}")
 
 
 def heartbeat_control(argv):

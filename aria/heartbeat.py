@@ -3,11 +3,11 @@ import logging
 import os
 
 from aria.agent import run_turn
+from aria.sessions import HEARTBEAT_SESSION_ID
 from aria.subagents.possibility_drive import run_possibility_drive
 
 logger = logging.getLogger("aria")
 
-HEARTBEAT_SESSION_ID = os.getenv("HEARTBEAT_SESSION_ID", "heartbeat")
 HEARTBEAT_USER_ID = "aria"
 
 PAUSE_POLL_SECONDS = 5

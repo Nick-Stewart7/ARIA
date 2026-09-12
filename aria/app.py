@@ -9,7 +9,8 @@ from typing import Optional
 from pydantic import BaseModel
 from aria.agent import stream_turn, cancel_turn
 from aria.memory_manager import MemoryManager
-from aria.sessions import session_exists, new_session_id, list_sessions
+from aria.sessions import session_exists, new_session_id
+from aria.history import list_sessions
 from aria.heartbeat import heartbeat_loop, pause as pause_heartbeat, resume as resume_heartbeat, is_enabled as heartbeat_enabled
 
 logger = logging.getLogger("aria")
@@ -147,7 +148,7 @@ async def handle_cancel(msg: CancelMessage):
 @app.get("/sessions")
 async def get_sessions():
     """List existing sessions, most recently updated first."""
-    return {"sessions": list_sessions()}
+    return {"sessions": [vars(s) for s in list_sessions()]}
 
 @app.get("/heartbeat")
 async def get_heartbeat_status():

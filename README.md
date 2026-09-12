@@ -43,7 +43,7 @@ aria chat                     # Textual TUI chat client (requires server running
 aria chat --continue          # Resume the most recently active session
 aria chat --session <id>      # Resume a specific session by id
 aria heartbeat [pause|resume|status]   # Control the autonomous heartbeat without stopping the server
-aria log [--session <id>] [--tail N] [--follow]   # Read the human-readable activity ledger
+aria log [--session <id>] [--tail N] [--follow]   # Read session history as turns (input, tool calls, reply)
 aria sessions                 # List existing sessions with a preview of their last turn
 aria summarize                # Run memory consolidation (Tier 3)
 ```
@@ -52,7 +52,7 @@ Starting `aria serve` is enough to bring ARIA's autonomous heartbeat cycle alive
 
 **`aria chat`** opens a Textual TUI: a scrolling chat pane with token-by-token streaming over Server-Sent Events, `Escape` to cancel a response mid-generation, and a status bar showing the current session id and cumulative token usage. Sending a new message while one is still streaming cancels the old turn server-side and redirects — it doesn't keep generating in the background.
 
-Every turn — chat or heartbeat — is recorded to a plain-JSONL ledger at `memory/ledger.jsonl`, readable with `aria log`. Server logs (startup, errors, heartbeat activity) go to `logs/aria.log`, rotated automatically.
+`aria log` reads session history straight from the Strands session files and prints it as turns — the user input, each tool call with its result size, and the reply — for chat and heartbeat alike. Server logs (startup, errors, heartbeat activity) go to `logs/aria.log`, rotated automatically.
 
 ---
 
@@ -115,7 +115,7 @@ Within a session, ARIA uses Strands' built-in session management to maintain tur
 
 - **`FileSessionManager`** — persists session state to `memory/sessions/session_<session_id>/`
 - **`SummarizingConversationManager`** — auto-summarizes long conversation histories to prevent context overflow
-- **`aria/ledger.py`** — a flat, human-readable JSONL log of every turn (chat or heartbeat) layered on top, used for session previews/recency ordering and `aria log`
+- **`aria/history.py`** — the one reader over those session files: folds raw messages into turns, orders sessions by last activity, and backs `aria log` / `aria sessions`
 
 ### Tier 3 — Dynamic Long-Term Memory (Vector Recall)
 
@@ -173,7 +173,7 @@ ARIA/
 │   ├── tui.py                   # Textual chat TUI — streaming, cancel/redirect, status bar
 │   ├── client.py                # Shared HTTP helpers (base URL, session resolution) used by the TUI
 │   ├── sessions.py              # Session listing/minting/existence checks
-│   ├── ledger.py                # Human-readable JSONL activity ledger + `aria log`
+│   ├── history.py               # Reads session files as turns; backs `aria log` / `aria sessions`
 │   ├── logging_setup.py         # Rotating file + console logging, configured once at startup
 │   ├── memory_loader.py         # Loads identity, user context, and recalled memories
 │   ├── memory_manager.py        # ChromaDB wrapper for vector memory store/recall
@@ -199,8 +199,7 @@ ARIA/
 │   ├── identity/                # ARIA's core identity files (ships with repo)
 │   ├── semantic/                # Conceptual knowledge
 │   ├── procedural/              # Process knowledge
-│   ├── sessions/                # Strands session state (gitignored)
-│   └── ledger.jsonl             # Activity ledger (gitignored)
+│   └── sessions/                # Strands session state (gitignored)
 ├── journal/                     # Autonomous reflection entries (gitignored)
 ├── artifacts/                   # Everything ARIA creates (gitignored, ships empty)
 ├── logs/                        # Rotating server logs (gitignored)
