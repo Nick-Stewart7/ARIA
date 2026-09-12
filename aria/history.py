@@ -293,3 +293,24 @@ def follow_log(session_id: str | None = None) -> None:
             time.sleep(2)
     except KeyboardInterrupt:
         pass
+
+
+# --- agent-facing view -----------------------------------------------------
+
+def render_turns(session_id: str, start: int = 0, limit: int = 10) -> str:
+    """A slice of a session for an agent to read: a header that says how many
+    turns exist, which are shown, and where to continue, then the turns in
+    the same shape `aria log` prints (tool calls as name/args/result size --
+    results themselves stay out, they are the bulk of a session)."""
+    folded = turns(session_id)
+    total = len(folded)
+    if not total:
+        return f"Session {session_id} has no turns."
+    start = max(0, start)
+    chunk = folded[start:start + limit]
+    if not chunk:
+        return f"Session {session_id} has {total} turns (0..{total - 1}); nothing at turn {start}."
+    end = start + len(chunk) - 1
+    header = f"Session {session_id}: {total} turns (0..{total - 1}). Showing turns {start}..{end}."
+    header += f" Continue with start_turn={end + 1}." if end + 1 < total else " That is the end of the session."
+    return header + "\n\n" + "\n\n".join(format_turn(turn) for turn in chunk)

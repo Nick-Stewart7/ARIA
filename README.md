@@ -45,6 +45,7 @@ aria chat --session <id>      # Resume a specific session by id
 aria heartbeat [pause|resume|status]   # Control the autonomous heartbeat without stopping the server
 aria log [--session <id>] [--tail N] [--follow]   # Read session history as turns (input, tool calls, reply)
 aria sessions                 # List existing sessions with a preview of their last turn
+aria digest <session_id> [--force]   # Write or update the session's digest (memory/digests/)
 ```
 
 Starting `aria serve` is enough to bring ARIA's autonomous heartbeat cycle alive — no separate command needed. Each time it fires, the Possibility Drive sub-agent generates a self-directed prompt, which is sent to ARIA to act on — entirely without human input. Because that costs real tokens on a timer, `aria heartbeat pause` stops it without killing the server (chat keeps working); `aria heartbeat resume` turns it back on.
@@ -105,7 +106,7 @@ cache keeps the prefix. Chat turns and heartbeat cycles get the same context.
 | ----------------------------- | --------- | ---------------------------------------------------------- |
 | `memory/identity/ARIA.md`     | always    | Core identity — in every agent's system prompt             |
 | `memory/users/<user_id>.md`   | always    | Per-user context — orchestrator only; heartbeat gets a note that the cycle is self-directed |
-| `memory/digests/<session>.md` | recent    | One digest per session; the 3 newest are injected (Pass 3 writes them) |
+| `memory/digests/<session>.md` | recent    | One digest per session, written by `aria digest`; the 3 newest are injected |
 | `memory/sessions/`            | on demand | Raw Strands session files — read via `aria log`            |
 | `artifacts/`                  | on demand | Things ARIA makes                                          |
 
@@ -113,6 +114,14 @@ cache keeps the prefix. Chat turns and heartbeat cycles get the same context.
 `memory/sessions/session_<session_id>/`, one JSON file per raw message; `SummarizingConversationManager`
 keeps long sessions within context. `aria/history.py` is the one reader over those files: it folds
 raw messages into turns, orders sessions by last activity, and backs `aria log` / `aria sessions`.
+
+**Digests** — `aria digest <session_id>` runs the Historian sub-agent over a session's history and
+writes `memory/digests/<session_id>.md`: what happened, decisions, open questions, what was learned,
+what to carry forward, under 400 words, with frontmatter recording how far into the session it
+reaches. Re-running on a session that has grown digests only the new turns and updates the file in
+place; a turn still waiting on its reply is left for next time, so digesting a live session is safe.
+The Historian reads history through the `read_session` tool (`aria/tools/history_tools.py`), the
+agent-facing form of `aria/history.py`. This is the seed of the consolidation daemon.
 
 **Vector recall** — `aria/memory_manager.py` wraps a ChromaDB collection at `chroma_db/`; the
 orchestrator reaches it through the `store` / `recall` tools in `aria/tools/memory_tools.py`, at its
@@ -150,7 +159,8 @@ ARIA/
 │   ├── tui.py                   # Textual chat TUI — streaming, cancel/redirect, status bar
 │   ├── client.py                # Shared HTTP helpers (base URL, session resolution) used by the TUI
 │   ├── sessions.py              # Session ids, roots, heartbeat ids
-│   ├── history.py               # Reads session files as turns; backs `aria log` / `aria sessions`
+│   ├── history.py               # Reads session files as turns; backs `aria log`, `aria sessions`, read_session
+│   ├── digest.py                # Session digests: file layout, frontmatter cursor, `aria digest`
 │   ├── logging_setup.py         # Rotating file + console logging, configured once at startup
 │   ├── manifest.py              # Memory layout under MEMORY_DIR + per-artifact injection policy
 │   ├── context.py               # Gathers identity, user model, recent digests into the prompt
@@ -159,12 +169,14 @@ ARIA/
 │   ├── subagents/
 │   │   ├── programmer.py
 │   │   ├── researcher.py
+│   │   ├── historian.py         # Digests a session's history (run by `aria digest`, not the orchestrator)
 │   │   └── possibility_drive.py # Generates self-directed heartbeat prompts from the gathered context
 │   ├── prompts/
 │   │   └── ARIA_prompts.py      # All system prompt templates
 │   └── tools/
 │       ├── web_search.py        # Tavily web search tool
-│       └── memory_tools.py      # store/recall tools backing ARIA's own memory access
+│       ├── memory_tools.py      # store/recall tools backing ARIA's own memory access
+│       └── history_tools.py     # read_session: paged, agent-facing view of a session's turns
 ├── memory/
 │   ├── identity/                # ARIA's core identity (ships with repo)
 │   ├── users/                   # Per-user context files

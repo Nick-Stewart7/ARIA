@@ -12,6 +12,7 @@ from aria.setup_wizard import run_setup
 from aria.tui import run as run_tui
 from aria.app import app
 from aria.history import print_log, follow_log, list_sessions, last_turn
+from aria.digest import run_digest
 from aria.client import _base_url
 
 
@@ -49,6 +50,15 @@ def show_sessions():
         print(f"{s.session_id:<28} {s.updated_at[:19]}  {preview}")
 
 
+def digest(argv):
+    parser = argparse.ArgumentParser(prog="aria digest", add_help=False)
+    parser.add_argument("session_id", help="session to digest (see `aria sessions`)")
+    parser.add_argument("--force", action="store_true",
+                        help="start over instead of continuing from the last digested turn")
+    opts = parser.parse_args(argv)
+    print(run_digest(opts.session_id, force=opts.force))
+
+
 def heartbeat_control(argv):
     import httpx
 
@@ -77,4 +87,5 @@ def main():
         case "log": show_log(sys.argv[2:])
         case "sessions": show_sessions()
         case "heartbeat": heartbeat_control(sys.argv[2:])
-        case _: print("Please provide a valid command for ARIA || Commands: serve | setup | chat | compact | log | sessions | heartbeat")
+        case "digest": digest(sys.argv[2:])
+        case _: print("Please provide a valid command for ARIA || Commands: serve | setup | chat | compact | log | sessions | heartbeat | digest")
