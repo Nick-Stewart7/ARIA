@@ -45,7 +45,6 @@ aria chat --session <id>      # Resume a specific session by id
 aria heartbeat [pause|resume|status]   # Control the autonomous heartbeat without stopping the server
 aria log [--session <id>] [--tail N] [--follow]   # Read session history as turns (input, tool calls, reply)
 aria sessions                 # List existing sessions with a preview of their last turn
-aria summarize                # Run memory consolidation (Tier 3)
 ```
 
 Starting `aria serve` is enough to bring ARIA's autonomous heartbeat cycle alive — no separate command needed. Each time it fires, the Possibility Drive sub-agent generates a self-directed prompt, which is sent to ARIA to act on — entirely without human input. Because that costs real tokens on a timer, `aria heartbeat pause` stops it without killing the server (chat keeps working); `aria heartbeat resume` turns it back on.
@@ -66,14 +65,13 @@ aria chat (Textual TUI)              aria heartbeat_loop (background task)
         ▼                                     ▼
   POST /chat, /chat/cancel      ┌───────────┐
         │                       │   ARIA    │  ← Orchestrator (aria/agent.py)
-        └──────────────────────▶│(Orchestr.)│    - Loads 3-tier memory context on startup
+        └──────────────────────▶│(Orchestr.)│    - Identity + user context in the system prompt
                                  │           │    - Manages session continuity
                                  └─────┬─────┘
                                        │  delegates to
-   ┌────┴──────────────────────────────────────┐
-   │          |           |        |           │
-   ▼          ▼           ▼        ▼           ▼
-Observer  Reflector  Programmer  Researcher  Planner
+                              ┌────────┴────────┐
+                              ▼                 ▼
+                          Programmer        Researcher
 ```
 
 The FastAPI app (`aria/app.py`) is the single runtime: `aria serve` starts it, and the heartbeat loop runs as a background task inside its own lifespan — chat sessions and the heartbeat session are fully isolated from each other (distinct session ids, and a chat-side cancel can never reach a heartbeat turn or vice versa).
@@ -82,68 +80,42 @@ The FastAPI app (`aria/app.py`) is the single runtime: `aria serve` starts it, a
 
 | Agent                 | Role                                                  | Tools                                                   |
 | --------------------- | ----------------------------------------------------- | ------------------------------------------------------- |
-| **Observer**          | Analyzes incoming signals and environment state       | `file_read`                                             |
-| **Reflector**         | Metacognitive self-evaluation; writes journal entries | `file_read`, `journal`                                  |
 | **Programmer**        | Code generation, debugging, and file output           | `file_read`, `file_write`                               |
 | **Researcher**        | Web research and information synthesis                | `web_search`, `file_read`, `file_write`, `current_time` |
-| **Planner**           | Decomposes objectives into structured task plans      | `file_read`, `file_write`                               |
 | **Possibility Drive** | Generates self-directed prompts for heartbeat cycles  | `file_read`, `file_write`                               |
 
-Sub-agents are implemented as `@tool`-decorated functions in `aria/subagents/`, making them directly callable by the orchestrator within the Strands framework.
+Sub-agents are implemented as `@tool`-decorated functions in `aria/subagents/`, making them directly callable by the orchestrator within the Strands framework. Earlier sub-agents that were never wired in (planner, observer, reflector) live in `archive/code-2026-09/`.
 
 ---
 
-## Three-Tier Memory System
+## Memory
 
-ARIA's memory operates at three tiers, each at a different timescale and granularity.
+> The memory system is being rebuilt (September 2026). What's below is what runs today; the
+> previous three-tier design — consolidation into ChromaDB via a summary agent, narrated recall
+> on startup, autonomous journal entries — was retired and its code parked in
+> `archive/code-2026-09/`, with the memory files ARIA wrote under it in `archive/memory-2026-09/`
+> and `archive/journal-2026/`.
 
-### Tier 1 — File-Based Memory (Identity & Knowledge)
+**Injected into the system prompt** (`aria/memory_loader.py`), every turn:
 
-Static and semi-static files that persist across all sessions.
+| Path                          | Purpose                                                  |
+| ----------------------------- | -------------------------------------------------------- |
+| `memory/identity/ARIA.md`     | Core identity — in every agent's system prompt           |
+| `memory/users/<user_id>.md`   | Per-user context — orchestrator only                     |
 
-| Path                      | Purpose                                                            |
-| ------------------------- | ------------------------------------------------------------------ |
-| `memory/identity/ARIA.md` | Core identity — loaded into every agent's system prompt at startup |
-| `memory/semantic/`        | Conceptual and domain knowledge                                    |
-| `memory/procedural/`      | Process and how-to knowledge                                       |
-| `journal/`                | Dated reflection entries written autonomously by the Reflector     |
-| `artifacts/`              | Files, research, and code created by ARIA across sessions          |
+**Session history** — Strands' `FileSessionManager` persists every session to
+`memory/sessions/session_<session_id>/`, one JSON file per raw message; `SummarizingConversationManager`
+keeps long sessions within context. `aria/history.py` is the one reader over those files: it folds
+raw messages into turns, orders sessions by last activity, and backs `aria log` / `aria sessions`.
 
-### Tier 2 — Session Memory (Conversation Continuity)
+**Vector recall** — `aria/memory_manager.py` wraps a ChromaDB collection at `chroma_db/`; the
+orchestrator reaches it through the `store` / `recall` tools in `aria/tools/memory_tools.py`, at its
+own discretion.
 
-Within a session, ARIA uses Strands' built-in session management to maintain turn history and tool call context. Long sessions are automatically summarized to stay within context limits.
-
-- **`FileSessionManager`** — persists session state to `memory/sessions/session_<session_id>/`
-- **`SummarizingConversationManager`** — auto-summarizes long conversation histories to prevent context overflow
-- **`aria/history.py`** — the one reader over those session files: folds raw messages into turns, orders sessions by last activity, and backs `aria log` / `aria sessions`
-
-### Tier 3 — Dynamic Long-Term Memory (Vector Recall)
-
-After sessions complete, a consolidation pipeline extracts meaningful memories into ChromaDB. At the start of each new session, relevant memories are recalled by semantic similarity and injected into the system prompt as a first-person narrative.
-
-```
-Completed Sessions
-        │
-        ▼
-aria summarize               ← runs memory consolidation
-        │
-        ▼
-session_summary agent        ← extracts structured memories from session transcripts
-        │
-        ▼
-MemoryManager (ChromaDB)     ← stores memories in a persistent vector DB
-        │
-   (on next startup)
-        │
-        ▼
-memory_loader.py             ← queries ChromaDB for memories relevant to current input
-        │
-        ▼
-narrative_agent              ← synthesizes recalled memories into a first-person narrative
-        │
-        ▼
-ORCHESTRATOR_PROMPT          ← narrative injected as {memories} into the system prompt
-```
+The direction of the rebuild: memory ARIA *has* rather than memory she has to go looking for — a
+small set of always-injected artifacts (identity, self-model, user model, recent session digests)
+under a token budget, a manual-then-scheduled digest step over session history, and recall / raw
+history search as the fallbacks behind them.
 
 ---
 
@@ -156,8 +128,7 @@ To fully reset a running instance:
 1. Remove contents of `memory/sessions/`
 2. Clear `artifacts/` (keep `.gitkeep`)
 3. Delete `chroma_db/`
-4. Remove entries from `journal/`
-5. Rewrite `memory/identity/ARIA.md` to your desired starting identity
+4. Rewrite `memory/identity/ARIA.md` to your desired starting identity
 
 ---
 
@@ -175,32 +146,23 @@ ARIA/
 │   ├── sessions.py              # Session listing/minting/existence checks
 │   ├── history.py               # Reads session files as turns; backs `aria log` / `aria sessions`
 │   ├── logging_setup.py         # Rotating file + console logging, configured once at startup
-│   ├── memory_loader.py         # Loads identity, user context, and recalled memories
+│   ├── memory_loader.py         # Loads identity and user context into the system prompt
 │   ├── memory_manager.py        # ChromaDB wrapper for vector memory store/recall
 │   ├── setup_wizard.py          # First-time setup wizard
-│   ├── summary.py               # Memory consolidation pipeline entry point
 │   ├── subagents/
 │   │   ├── programmer.py
 │   │   ├── researcher.py
-│   │   ├── planner.py
-│   │   ├── observer.py
-│   │   ├── reflector.py
-│   │   ├── possibility_drive.py # Generates self-directed heartbeat prompts
-│   │   ├── session_summary.py   # Memory extraction agent (Tier 3)
-│   │   └── narrative_writer.py  # Memory narration agent (Tier 3)
+│   │   └── possibility_drive.py # Generates self-directed heartbeat prompts
 │   ├── prompts/
 │   │   └── ARIA_prompts.py      # All system prompt templates
-│   ├── tools/
-│   │   ├── web_search.py        # Tavily web search tool
-│   │   └── memory_tools.py      # store/recall tools backing ARIA's own memory access
-│   └── output_models/
-│       └── models.py            # Pydantic output schemas (Memory_Output)
+│   └── tools/
+│       ├── web_search.py        # Tavily web search tool
+│       └── memory_tools.py      # store/recall tools backing ARIA's own memory access
 ├── memory/
-│   ├── identity/                # ARIA's core identity files (ships with repo)
-│   ├── semantic/                # Conceptual knowledge
-│   ├── procedural/              # Process knowledge
+│   ├── identity/                # ARIA's core identity (ships with repo)
+│   ├── users/                   # Per-user context files
 │   └── sessions/                # Strands session state (gitignored)
-├── journal/                     # Autonomous reflection entries (gitignored)
+├── archive/                     # Retired code, old memory files, journals (gitignored)
 ├── artifacts/                   # Everything ARIA creates (gitignored, ships empty)
 ├── logs/                        # Rotating server logs (gitignored)
 ├── chroma_db/                   # Vector memory database (gitignored)

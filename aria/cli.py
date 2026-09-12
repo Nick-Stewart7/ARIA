@@ -12,7 +12,6 @@ import argparse
 import uvicorn
 from aria.setup_wizard import run_setup
 from aria.tui import run as run_tui
-from aria.summary import run_memory_consolidation
 from aria.app import app
 from aria.history import print_log, follow_log, list_sessions, last_turn
 from aria.client import _base_url
@@ -77,8 +76,7 @@ def main():
         case "setup": run_setup()
         case "chat": run_tui(sys.argv[2:])
         case "compact": pass #Todo add smart compact
-        case "summarize": run_memory_consolidation()
         case "log": show_log(sys.argv[2:])
         case "sessions": show_sessions()
         case "heartbeat": heartbeat_control(sys.argv[2:])
-        case _: print("Please provide a valid command for ARIA || Commands: serve | setup | chat | compact | summarize | log | sessions | heartbeat")
+        case _: print("Please provide a valid command for ARIA || Commands: serve | setup | chat | compact | log | sessions | heartbeat")

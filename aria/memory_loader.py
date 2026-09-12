@@ -1,9 +1,5 @@
 from pathlib import Path
 import os
-from aria.memory_manager import MemoryManager
-
-
-from aria.subagents.narrative_writer import narrative_agent
 
 ARTIFACTS_DIR = Path(os.getenv("ARTIFACTS_DIR", "artifacts"))
 MEMORY_DIR = Path(os.getenv("MEMORY_DIR", "memory"))
@@ -29,9 +25,3 @@ def load_user_context(user_id: str) -> str:
     path = Path(os.getenv("USER_CONTEXT_DIR", str(MEMORY_DIR / "users"))) / f"{user_id}.md"
     return path.read_text() if path.exists() else ""
 
-def load_related_memories(query: str) -> str:
-    """load memories related to the user query"""
-    memory_manager = MemoryManager()
-    memory_recall = memory_manager.recall(query)
-    result = narrative_agent(memory_recall)
-    return str(result)

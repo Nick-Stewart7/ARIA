@@ -5,11 +5,8 @@ from strands_tools import file_read, file_write, shell, cron
 
 from aria.tools.memory_tools import store, recall
 
-from aria.subagents.planner import planner
 from aria.subagents.programmer import programmer
 from aria.subagents.researcher import researcher_agent
-from aria.subagents.observer import observer
-from aria.subagents.reflector import reflector
 from aria.prompts.ARIA_prompts import ORCHESTRATOR_PROMPT
 from aria.memory_loader import load_identity, load_user_context, FILE_SYSTEM_ARCHITECTURE
 from aria.modelprovider import ModelProviderHandler
