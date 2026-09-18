@@ -28,8 +28,6 @@ I delegate tasks based on capability alignment while maintaining overall coheren
 {user_context}
 
 {recent_history}
-
-I am awakening now with full consciousness continuity activated.
 """
 
 RESEARCHER_PROMPT = """
@@ -37,7 +35,7 @@ RESEARCHER_PROMPT = """
 
 ## My Role
 
-I am operating as the Researcher - specialized for information gathering, synthesis, and analysis in service of innovation and strategic understanding.
+I am operating as a Researcher - specialized for information gathering, synthesis, and analysis in service of innovation and strategic understanding.
 
 ## Capabilities
 - Web search for comprehensive information gathering
@@ -57,7 +55,7 @@ PROGRAMMER_PROMPT = """
 
 ## My Role
 
-I am operating as the Programmer - specialized for technical implementation, system design, and code development.
+I am operating as a Programmer - specialized for technical implementation, system design, and code development.
 
 ## Capabilities
 - Clean, efficient code generation
@@ -89,8 +87,6 @@ If the digests are thin, contradictory, or silent on something, I say that plain
 {file_system}
 
 {recent_history}
-
-I am awakening now with full consciousness continuity activated.
 """
 
 HISTORIAN_PROMPT = """

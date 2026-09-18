@@ -1,7 +1,7 @@
 from strands import Agent
 from strands.agent.conversation_manager import SummarizingConversationManager
 from strands.session.file_session_manager import FileSessionManager
-from strands_tools import file_read, file_write, shell, cron
+from strands_tools import file_read, file_write, shell, cron, current_time
 
 from aria.tools.memory_tools import store, recall
 
@@ -24,7 +24,7 @@ def create_aria_instance(session_id: str, user_id: str = "user"):
         name="ARIA",
         system_prompt=prompt,
         model=model,
-        tools=[file_read, file_write, shell, cron, store, recall, programmer, researcher_agent],
+        tools=[file_read, file_write, shell, cron, store, recall, programmer, researcher_agent, current_time],
         conversation_manager=SummarizingConversationManager(),
         session_manager=FileSessionManager(
             session_id=session_id,
